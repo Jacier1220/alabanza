@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alabanza">
+<meta name="theme-color" content="#1a120b">
+<link rel="apple-touch-icon" href="icono.png">
+<link rel="manifest" href="manifest.json">
+<title>Alabanza</title>
+<style>
+:root{--bg:#1a120b;--card:#2a1d12;--gold:#e8b04b;--cream:#fff1dc;--dim:#bfa888;--line:#e8b04b44}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--cream);font-family:-apple-system,system-ui,sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom))}
+header{padding:18px 16px 6px}
+h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
+.sub{color:var(--dim);font-size:13px;margin-top:2px}
+#q{width:calc(100% - 32px);margin:10px 16px 6px;padding:12px 18px;border-radius:24px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:16px;outline:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:18px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:14px}
+.chip.on{background:var(--gold);color:#1a120b;border-color:var(--gold)}
+.head{display:flex;align-items:center;gap:10px;padding:10px 16px 2px}
+.back{width:40px;height:40px;border-radius:20px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:18px}
+.htitle{font-family:Georgia,serif;font-size:19px;font-weight:bold}
+.btns{display:flex;gap:8px;padding:8px 16px}
+.btn{padding:9px 16px;border-radius:20px;border:1px solid var(--line);background:#fff1dc22;color:var(--cream);font-weight:600;font-size:14px}
+.btn.gold{background:var(--gold);color:#1a120b;border:0}
+.sec{color:var(--gold);font-size:12px;letter-spacing:.18em;font-weight:700;padding:16px 16px 4px}
+.row{display:flex;align-items:center;gap:12px;padding:7px 10px;margin:0 6px;border-radius:14px}
+.row:active,.row.now{background:#e8b04b33}
+.th{position:relative;flex:none;width:104px;height:58px;border-radius:10px;background:var(--card) center/cover}
+.th.sq{width:58px}
+.th.round{width:58px;border-radius:29px}
+.badge{position:absolute;right:4px;bottom:4px;font-size:11px;font-weight:700;background:#1a120bcc;padding:1px 6px;border-radius:9px}
+.tx{min-width:0;flex:1}
+.t1{font-size:15px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.t2{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.more{margin:2px 16px;padding:10px 14px;border-radius:12px;background:#fff1dc14;color:var(--gold);font-size:14px}
+#msg{text-align:center;color:var(--dim);padding:40px 30px;font-size:15px;line-height:1.5}
+#bar{position:fixed;left:0;right:0;bottom:0;background:#120c07f2;border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:none;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#prog{width:100%;accent-color:var(--gold);margin:0 0 4px}
+.pl{display:flex;align-items:center;gap:10px}
+#cov{width:46px;height:46px;border-radius:8px;background:var(--card) center/cover;flex:none}
+.pb{width:44px;height:44px;border-radius:22px;border:0;background:transparent;color:var(--cream);font-size:22px}
+.pb.big{background:var(--gold);color:#1a120b}
+#gate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;padding:30px}
+#gate input{padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:20px;text-align:center;letter-spacing:.2em;margin:16px 0}
+</style>
+</head>
+<body>
+<header><h1>✝ Alabanza</h1><div class="sub" id="st">Música cristiana y prédicas · sin anuncios</div></header>
+<input id="q" type="search" placeholder="Buscar artista, canción, canal…" enterkeyhint="search">
+<div class="chips" id="chips"></div>
+<div id="view"></div>
+<div id="msg"></div>
+
+<div id="bar">
+  <input id="prog" type="range" min="0" max="1000" value="0">
+  <div class="pl">
+    <div id="cov"></div>
+    <div class="tx"><div class="t1" id="nt" style="-webkit-line-clamp:1"></div><div class="t2" id="nc"></div></div>
+    <button class="pb" id="bprev">⏮</button><button class="pb big" id="bplay">▶</button><button class="pb" id="bnext">⏭</button>
+  </div>
+</div>
+<audio id="au" preload="auto"></audio>
+
+<div id="gate">
+  <h1>✝ Alabanza</h1>
+  <p class="sub" style="font-size:16px">Escribe la clave del servidor de la casa (sale en el teléfono servidor).</p>
+  <input id="key" autocomplete="off" autocapitalize="none">
+  <button class="btn gold" id="keyok" style="padding:14px;font-size:17px">Entrar</button>
+</div>
+
+<script>
+const TOPIC = 'alabanza-yhepau56t8hn93x2';
+const CHIPS = [['Alabanza','alabanza'],['Adoración','adoración'],['Marcos Witt','Marcos Witt'],['Jesús Adrián Romero','Jesús Adrián Romero'],
+  ['Miel San Marcos','Miel San Marcos'],['Christine D\'Clario','Christine D\'Clario'],['Barak','Barak'],['Himnos','himnos cristianos'],
+  ['Prédicas','prédica cristiana'],['Dante Gebel','Dante Gebel prédica']];
+const $ = id => document.getElementById(id);
+const store = { get(k, d){ try { return localStorage.getItem(k) ?? d; } catch(e) { return d; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
+let KEY = store.get('clave', ''), SRV = store.get('srv', '');
+let queue = [], qi = -1, qname = '', shuffle = false, stack = [];
+
+function esc(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function time(s){ s = Math.floor(s||0); if (s<=0) return ''; const h=Math.floor(s/3600), m=Math.floor(s/60)%60, x=String(s%60).padStart(2,'0'); return h ? h+':'+String(m).padStart(2,'0')+':'+x : m+':'+x; }
+function msg(t){ $('msg').innerHTML = t ? esc(t).replace(/\n/g,'<br>') : ''; }
+
+async function findServer(force){
+  if (SRV && !force) return SRV;
+  const r = await fetch('https://ntfy.sh/' + TOPIC + '/json?poll=1&since=24h');
+  const lines = (await r.text()).trim().split('\n').filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try { const o = JSON.parse(lines[i]); if (o.event === 'message' && /^https:\/\//.test(o.message)) { SRV = o.message.trim(); store.set('srv', SRV); return SRV; } } catch(e) {}
+  }
+  throw new Error('El servidor de la casa no aparece. ¿Está prendido y con internet?');
+}
+
+async function api(path, params){
+  const qs = new URLSearchParams({...params, k: KEY}).toString();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const base = await findServer(attempt > 0);
+      const r = await fetch(base + path + '?' + qs);
+      if (r.status === 403) { gate(); throw new Error('Clave equivocada'); }
+      if (!r.ok) throw new Error('El servidor respondió ' + r.status);
+      return await r.json();
+    } catch (e) { if (attempt === 1 || e.message === 'Clave equivocada') throw e; }
+  }
+}
+
+function rowHtml(it, i){
+  const kind = it.k || 'song', list = it.list;
+  const cls = kind === 'channel' ? 'round' : (list && kind !== 'mix') ? 'sq' : '';
+  const label = kind === 'channel' ? '👤 Canal' : kind === 'album' ? '💿 Álbum' : kind === 'mix' ? '✨ Mix' : list ? '☰ Lista' : '🎵 Canción';
+  const badge = list ? (it.n ? '☰ ' + it.n : '') : time(it.s);
+  const now = !list && queue[qi] && queue[qi].u === it.u ? ' now' : '';
+  return `<div class="row${now}" data-i="${i}"><div class="th ${cls}" style="background-image:url('${esc(it.th)}')">${badge ? `<span class="badge">${badge}</span>` : ''}</div>
+    <div class="tx"><div class="t1">${esc(it.t)}</div><div class="t2">${label}${it.c ? ' · ' + esc(it.c) : ''}</div></div></div>`;
+}
+
+let rows = [];
+function render(blocks, head){
+  rows = [];
+  let h = head || '';
+  for (const b of blocks) {
+    if (!b.items || !b.items.length) continue;
+    if (b.title) h += `<div class="sec">${b.title}</div>`;
+    const show = b.max ? b.items.slice(0, b.max) : b.items;
+    for (const it of show) { h += rowHtml(it, rows.length); rows.push({it, from: b.items}); }
+    if (b.max && b.items.length > b.max) { h += `<div class="more" data-more="${blocks.indexOf(b)}">Ver todos (${b.items.length}) ›</div>`; }
+  }
+  $('view').innerHTML = h;
+  $('view').querySelectorAll('.row').forEach(el => el.onclick = () => tap(+el.dataset.i));
+  $('view').querySelectorAll('.more').forEach(el => el.onclick = () => { const b = blocks[+el.dataset.more]; push(); render([{title: b.title, items: b.items}], backHead(b.title.replace(/^[^A-ZÁÉÍÓÚ]+/, ''))); scrollTo(0,0); });
+  window._blocks = blocks;
+}
+
+function backHead(title, sub, songs){
+  return `<div class="head"><button class="back" onclick="pop()">←</button><div><div class="htitle">${esc(title)}</div>${sub ? `<div class="t2">${esc(sub)}</div>` : ''}</div></div>`
+    + (songs ? `<div class="btns"><button class="btn gold" onclick="playAll(false)">▶ Reproducir</button><button class="btn" onclick="playAll(true)">🔀 Aleatorio</button></div>` : '');
+}
+function push(){ stack.push($('view').innerHTML ? {html: $('view').innerHTML, rows, blocks: window._blocks, y: scrollY} : null); }
+function pop(){ const s = stack.pop(); if (!s) return; render(s.blocks); $('view').innerHTML = s.html; $('view').querySelectorAll('.row').forEach(el => el.onclick = () => tap(+el.dataset.i)); rows = s.rows; scrollTo(0, s.y); }
+
+async function search(q){
+  stack = []; msg('Buscando…'); $('view').innerHTML = '';
+  try {
+    const r = await api('/api/buscar', {q});
+    msg('');
+    const songs = r.canciones || [];
+    const mix = songs.length ? [{t: 'Mix de ' + songs[0].t, c: songs[0].c, th: songs[0].th, u: 'https://www.youtube.com/watch?v=' + vid(songs[0].u) + '&list=RD' + vid(songs[0].u), k: 'mix', list: true}] : [];
+    render([{title:'🎵 CANCIONES', items: songs, max: 5}, {title:'👤 CANALES', items: r.canales, max: 2}, {title:'💿 ÁLBUMES', items: r.albumes, max: 3},
+            {title:'✨ MIX', items: mix}, {title:'☰ LISTAS', items: r.listas, max: 3}]);
+    if (!songs.length && !(r.albumes||[]).length && !(r.listas||[]).length && !(r.canales||[]).length) msg('No encontré música cristiana con esa búsqueda.');
+  } catch (e) { msg(e.message); }
+}
+function vid(u){ const m = /[?&]v=([^&]+)/.exec(u||''); return m ? m[1] : (u||'').split('/').pop(); }
+
+async function openList(it){
+  push(); scrollTo(0,0);
+  $('view').innerHTML = backHead(it.t, (it.k === 'channel' ? 'Canal' : it.k === 'album' ? 'Álbum' : it.k === 'mix' ? 'Mix' : 'Lista') + (it.c ? ' · ' + it.c : ''));
+  msg('Cargando…');
+  try {
+    if (it.k === 'channel') {
+      const r = await api('/api/canal', {u: it.u});
+      msg('');
+      qname = it.t;
+      render([{title:'☰ LISTAS DEL CANAL', items: r.listas}, {title:'🎵 VIDEOS RECIENTES', items: r.videos}], backHead(it.t, 'Canal' + (it.c ? ' · ' + it.c : ''), (r.videos||[]).length));
+    } else {
+      const r = await api('/api/lista', {u: it.u, mix: it.k === 'mix' ? 1 : 0});
+      msg(r.length ? '' : 'Esta lista no tiene canciones.');
+      qname = it.t;
+      render([{items: r}], backHead(it.t, (it.k === 'album' ? 'Álbum' : it.k === 'mix' ? 'Mix' : 'Lista') + ' · ' + r.length + ' canciones', r.length));
+    }
+  } catch (e) { msg(e.message); }
+}
+
+function tap(i){
+  const {it, from} = rows[i];
+  if (it.list) { openList(it); return; }
+  const songs = from.filter(x => !x.list);
+  play(songs, songs.indexOf(it));
+}
+function playAll(sh){ const songs = rows.map(r => r.it).filter(x => !x.list); if (!songs.length) return; shuffle = sh; play(songs, sh ? Math.floor(Math.random()*songs.length) : 0); }
+
+// ------------------------------------------------------------ reproductor (suena con la pantalla bloqueada)
+const au = $('au');
+let played = new Set(), fails = 0;
+function play(list, i){ queue = list.slice(); played = new Set(); start(i); }
+async function start(i){
+  if (i < 0 || i >= queue.length) return;
+  qi = i; played.add(i); fails = 0;
+  const it = queue[i];
+  $('bar').style.display = 'block';
+  $('nt').textContent = it.t; $('nc').textContent = it.c || '';
+  $('cov').style.backgroundImage = `url('${it.th}')`;
+  try {
+    const base = await findServer(false);
+    au.src = base + '/audio?u=' + encodeURIComponent(it.u) + '&k=' + encodeURIComponent(KEY);
+    await au.play();
+  } catch (e) { /* iOS a veces pide tocar ▶ la primera vez */ }
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({title: it.t, artist: it.c || '', album: qname || 'Alabanza', artwork: [{src: it.th, sizes: '480x360', type: 'image/jpeg'}]});
+  }
+  document.querySelectorAll('.row').forEach(el => { const r = rows[+el.dataset.i]; el.classList.toggle('now', !!r && !r.it.list && r.it.u === it.u); });
+}
+function nextIndex(){
+  if (shuffle && queue.length > 1) {
+    let left = queue.map((_, k) => k).filter(k => k !== qi && !played.has(k));
+    if (!left.length) { played = new Set([qi]); left = queue.map((_, k) => k).filter(k => k !== qi); }
+    return left[Math.floor(Math.random()*left.length)];
+  }
+  return qi + 1 < queue.length ? qi + 1 : -1;
+}
+function next(){ const n = nextIndex(); if (n >= 0) start(n); }
+function prev(){ if (au.currentTime > 5) au.currentTime = 0; else if (qi > 0) start(qi - 1); }
+au.addEventListener('ended', next);
+au.addEventListener('error', () => { if (fails++ < 1) setTimeout(() => { const t = au.currentTime; au.load(); au.play().catch(()=>{}); }, 1200); else next(); });
+au.addEventListener('play', () => $('bplay').textContent = '⏸');
+au.addEventListener('pause', () => $('bplay').textContent = '▶');
+au.addEventListener('timeupdate', () => { if (au.duration) $('prog').value = Math.round(1000 * au.currentTime / au.duration); });
+$('prog').oninput = () => { if (au.duration) au.currentTime = au.duration * $('prog').value / 1000; };
+$('bplay').onclick = () => au.paused ? au.play() : au.pause();
+$('bnext').onclick = next; $('bprev').onclick = prev;
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.setActionHandler('play', () => au.play());
+  navigator.mediaSession.setActionHandler('pause', () => au.pause());
+  navigator.mediaSession.setActionHandler('nexttrack', next);
+  navigator.mediaSession.setActionHandler('previoustrack', prev);
+  try { navigator.mediaSession.setActionHandler('seekto', d => { au.currentTime = d.seekTime; }); } catch(e) {}
+}
+
+// ------------------------------------------------------------ inicio
+function gate(){ $('gate').style.display = 'flex'; $('key').value = KEY; }
+$('keyok').onclick = () => { KEY = $('key').value.trim(); store.set('clave', KEY); $('gate').style.display = 'none'; search(CHIPS[0][1]); };
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); search(v); $('q').blur(); } } });
+$('chips').innerHTML = CHIPS.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
+$('chips').querySelectorAll('.chip').forEach(el => el.onclick = () => { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); $('q').value = ''; search(CHIPS[+el.dataset.i][1]); });
+if (!KEY) gate(); else search(CHIPS[0][1]);
+</script>
+</body>
+</html>
