@@ -54,7 +54,7 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 </head>
 <body>
 <header><h1>✝ Alabanza</h1><div class="sub" id="st">Música cristiana y prédicas · sin anuncios</div></header>
-<input id="q" type="search" placeholder="Buscar artista, canción, canal…" enterkeyhint="search">
+<input id="q" type="search" placeholder="Buscar canción, artista o canal · o pegar enlace" enterkeyhint="search">
 <div class="chips" id="chips"></div>
 <div id="view"></div>
 <div id="msg"></div>
@@ -140,7 +140,11 @@ function render(blocks, head){
   window._blocks = blocks;
 }
 
-function backHead(title, sub, songs){
+function backHead(title, sub, songs, channel){
+  const fb = channel ? `<div class="btns"><button class="btn" id="follow" onclick="toggleFollow()">${isFollowed(channel.u) ? '✓ Siguiendo' : '⭐ Seguir canal'}</button></div>` : '';
+  return backHead0(title, sub, songs) + fb;
+}
+function backHead0(title, sub, songs){
   return `<div class="head"><button class="back" onclick="pop()">←</button><div><div class="htitle">${esc(title)}</div>${sub ? `<div class="t2">${esc(sub)}</div>` : ''}</div></div>`
     + (songs ? `<div class="btns"><button class="btn gold" onclick="playAll(false)">▶ Reproducir</button><button class="btn" onclick="playAll(true)">🔀 Aleatorio</button></div>` : '');
 }
@@ -169,8 +173,11 @@ async function openList(it){
     if (it.k === 'channel') {
       const r = await api('/api/canal', {u: it.u});
       msg('');
+      if (it.t === 'Canal' && r.videos && r.videos[0] && r.videos[0].c) it.t = r.videos[0].c;   // canal pegado: poner su nombre
+      if (!it.th && r.videos && r.videos[0]) it.th = r.videos[0].th;
+      window._channel = it;
       qname = it.t;
-      render([{title:'☰ LISTAS DEL CANAL', items: r.listas}, {title:'🎵 VIDEOS RECIENTES', items: r.videos}], backHead(it.t, 'Canal' + (it.c ? ' · ' + it.c : ''), (r.videos||[]).length));
+      render([{title:'☰ LISTAS DEL CANAL', items: r.listas}, {title:'🎵 VIDEOS RECIENTES', items: r.videos}], backHead(it.t, 'Canal' + (it.c ? ' · ' + it.c : ''), (r.videos||[]).length, it));
     } else {
       const r = await api('/api/lista', {u: it.u, mix: it.k === 'mix' ? 1 : 0});
       msg(r.length ? '' : 'Esta lista no tiene canciones.');
@@ -238,9 +245,53 @@ if ('mediaSession' in navigator) {
 // ------------------------------------------------------------ inicio
 function gate(){ $('gate').style.display = 'flex'; $('key').value = KEY; }
 $('keyok').onclick = () => { KEY = $('key').value.trim(); store.set('clave', KEY); $('gate').style.display = 'none'; search(CHIPS[0][1]); };
-$('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); search(v); $('q').blur(); } } });
-$('chips').innerHTML = CHIPS.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
-$('chips').querySelectorAll('.chip').forEach(el => el.onclick = () => { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); $('q').value = ''; search(CHIPS[+el.dataset.i][1]); });
+// ------------------------------------------------------------ canales que sigues (se guardan en este iPhone)
+function follows(){ try { return JSON.parse(store.get('canales', '[]')); } catch(e) { return []; } }
+function isFollowed(u){ return follows().some(c => c.u === u); }
+function toggleFollow(){
+  const ch = window._channel; if (!ch) return;
+  let l = follows().filter(c => c.u !== ch.u);
+  if (!isFollowed(ch.u)) l.unshift({t: ch.t, c: ch.c || '', u: ch.u, th: ch.th || '', k: 'channel', list: true});
+  store.set('canales', JSON.stringify(l));
+  const b = $('follow'); if (b) b.textContent = isFollowed(ch.u) ? '✓ Siguiendo' : '⭐ Seguir canal';
+}
+function showFollowed(){
+  stack = []; scrollTo(0,0);
+  const l = follows();
+  msg(l.length ? '' : 'Todavía no sigues canales.\nBusca el nombre del canal, tócalo en la sección 👤 CANALES y toca "⭐ Seguir canal".');
+  render([{title: '👤 CANALES QUE SIGUES', items: l}]);
+}
+
+// ------------------------------------------------------------ pegar un enlace de YouTube (video, lista, mix o canal)
+function isUrl(v){ return /^(https?:\/\/)?([a-z0-9-]+\.)*(youtube\.com|youtu\.be|spotify\.com|deezer\.com)\//i.test(v.trim()); }
+async function openUrl(v){
+  let u = v.trim(); if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  if (/spotify\.com|deezer\.com/i.test(u)) { msg('Por ahora la página solo abre enlaces de YouTube.\nLos de Spotify se pasan con la app del teléfono.'); return; }
+  stack = []; $('view').innerHTML = ''; msg('');
+  const list = /[?&]list=([^&#]+)/.exec(u), id = /(?:[?&]v=|youtu\.be\/|\/shorts\/|\/live\/)([A-Za-z0-9_-]{11})/.exec(u);
+  if (list) { const mix = list[1].startsWith('RD'); openList({t: mix ? 'Mix pegado' : 'Lista pegada', u, k: mix ? 'mix' : 'list', list: true}); return; }
+  if (/youtube\.com\/(@|channel\/|c\/|user\/)/i.test(u)) { openList({t: 'Canal', u: u.split('?')[0], k: 'channel', list: true}); return; }
+  if (!id) { msg('Ese enlace no lo entiendo. Pega un enlace de un video, lista o canal de YouTube.'); return; }
+  const it = {t: 'Video pegado', c: '', u: 'https://www.youtube.com/watch?v=' + id[1], th: 'https://i.ytimg.com/vi/' + id[1] + '/hqdefault.jpg'};
+  try { const o = await (await fetch('https://noembed.com/embed?url=' + encodeURIComponent(it.u))).json(); if (o.title) { it.t = o.title; it.c = o.author_name || ''; } } catch(e) {}
+  qname = 'Enlace';
+  render([{title: '🔗 ENLACE PEGADO', items: [it]}]);
+  play([it], 0);
+}
+async function pasteLink(){
+  let v = '';
+  try { v = (await navigator.clipboard.readText()) || ''; } catch(e) {}
+  if (!isUrl(v)) v = prompt('Pega aquí el enlace de YouTube (video, lista o canal):', v) || '';
+  if (v.trim()) { $('q').value = v.trim(); openUrl(v); }
+}
+function chipsOff(){ document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); }
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { chipsOff(); isUrl(v) ? openUrl(v) : search(v); $('q').blur(); } } });
+$('q').addEventListener('paste', () => setTimeout(() => { const v = $('q').value.trim(); if (isUrl(v)) { chipsOff(); openUrl(v); $('q').blur(); } }, 50));
+$('chips').innerHTML = `<button class="chip" id="paste">🔗 Pegar enlace</button><button class="chip" id="mine">⭐ Mis canales</button>`
+  + CHIPS.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
+$('paste').onclick = () => { chipsOff(); pasteLink(); };
+$('mine').onclick = () => { chipsOff(); $('mine').classList.add('on'); showFollowed(); };
+$('chips').querySelectorAll('.chip[data-i]').forEach(el => el.onclick = () => { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); $('q').value = ''; search(CHIPS[+el.dataset.i][1]); });
 if (!KEY) gate(); else search(CHIPS[0][1]);
 </script>
 </body>
