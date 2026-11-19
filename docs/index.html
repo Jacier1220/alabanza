@@ -321,7 +321,7 @@ $('fplay').onclick = () => au.paused ? au.play() : au.pause();
 $('fnext').onclick = () => next(); $('fprev').onclick = () => prev();
 $('fshuf').onclick = () => { shuffle = !shuffle; played = new Set([qi]); fullUpdate(); };
 $('frep').onclick = () => { repeat = (repeat + 1) % 3; fullUpdate(); };
-$('fprog').oninput = () => { if (au.duration) au.currentTime = au.duration * $('fprog').value / 1000; };
+$('fprog').oninput = () => { const d = realDur(); if (d) au.currentTime = d * $('fprog').value / 1000; };
 function nextIndex(){
   if (shuffle && queue.length > 1) {
     let left = queue.map((_, k) => k).filter(k => k !== qi && !played.has(k));
@@ -358,13 +358,23 @@ function preNext(){
 }
 au.addEventListener('play', () => { $('bplay').textContent = '⏸'; $('fplay').textContent = '⏸'; });
 au.addEventListener('pause', () => { $('bplay').textContent = '▶'; $('fplay').textContent = '▶'; });
+// duración verdadera: el iPhone a veces calcula el doble; se usa la que dice YouTube si no cuadra
+function realDur(){
+  const it = queue[qi], d = isFinite(au.duration) ? au.duration : 0;
+  if (it && it.s > 0 && (!d || d > it.s * 1.15 || d < it.s * 0.85)) return it.s;
+  return d;
+}
+let endGuard = '';
 au.addEventListener('timeupdate', () => {
-  if (!au.duration || !isFinite(au.duration)) return;
-  const v = Math.round(1000 * au.currentTime / au.duration);
+  const d = realDur(); if (!d) return;
+  const v = Math.round(1000 * Math.min(1, au.currentTime / d));
   $('prog').value = v; $('fprog').value = v;
-  $('fcur').textContent = time(au.currentTime) || '0:00'; $('fdur').textContent = time(au.duration);
+  $('fcur').textContent = time(au.currentTime) || '0:00'; $('fdur').textContent = time(d);
+  // si la canción ya llegó a su final real pero el iPhone cree que sigue, pasar a la siguiente
+  const it = queue[qi];
+  if (it && isFinite(au.duration) && au.duration > d + 5 && au.currentTime >= d - 0.4 && endGuard !== it.u + qi) { endGuard = it.u + qi; ended(); }
 });
-$('prog').oninput = () => { if (au.duration) au.currentTime = au.duration * $('prog').value / 1000; };
+$('prog').oninput = () => { const d = realDur(); if (d) au.currentTime = d * $('prog').value / 1000; };
 $('bplay').onclick = () => au.paused ? au.play() : au.pause();
 $('bnext').onclick = next; $('bprev').onclick = prev;
 if ('mediaSession' in navigator) {
