@@ -56,7 +56,9 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 .fq{color:var(--dim);font-size:13px;text-align:center;flex:1;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #fcov{width:min(82vw,360px);aspect-ratio:1;margin:22px auto 18px;border-radius:16px;background:var(--card) center/cover;box-shadow:0 14px 40px #0009}
 .ft{font-size:20px;font-weight:700;padding:0 24px;line-height:1.25}
-.fc{color:var(--dim);font-size:15px;padding:4px 24px 0}
+.fc{padding:8px 24px 0}
+.chbtn{border:0;background:#fff1dc22;color:var(--cream);font-size:15px;font-weight:600;padding:8px 14px;border-radius:20px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chbtn span{color:var(--gold);font-weight:500}
 #fprog{width:calc(100% - 48px);margin:16px 24px 0;accent-color:var(--gold)}
 .ftime{display:flex;justify-content:space-between;color:var(--dim);font-size:12px;padding:2px 24px 0}
 .fbtns{display:flex;justify-content:space-around;align-items:center;padding:12px 18px 6px}
@@ -284,7 +286,7 @@ async function start(i){
 function histList(){ try { return JSON.parse(store.get('historial', '[]')); } catch(e) { return []; } }
 function addHistory(it){
   const l = histList().filter(h => h.u !== it.u);
-  l.unshift({t: it.t, c: it.c || '', u: it.u, th: it.th || '', s: it.s || 0, cuando: Date.now()});
+  l.unshift({t: it.t, c: it.c || '', cu: it.cu || '', u: it.u, th: it.th || '', s: it.s || 0, cuando: Date.now()});
   store.set('historial', JSON.stringify(l.slice(0, 200)));
 }
 function ago(ms){
@@ -311,7 +313,8 @@ let repeat = 0;   // 0 no, 1 toda la lista, 2 una canción
 function hq(th){ return (th || '').replace(/\/(hq|mq|sd)?default\.jpg/, '/hqdefault.jpg'); }
 function fullUpdate(){
   const it = queue[qi]; if (!it) return;
-  $('ft').textContent = it.t; $('fc').textContent = it.c || '';
+  $('ft').textContent = it.t;
+  $('fc').innerHTML = it.c ? `<button class="chbtn" onclick="goChannel()">👤 ${esc(it.c)} <span>› Ir al canal</span></button>` : '';
   $('fq').textContent = qname ? 'Reproduciendo de: ' + qname : 'Reproduciendo';
   $('fcov').style.backgroundImage = `url('${hq(it.th)}')`;
   $('fshuf').classList.toggle('on', shuffle);
@@ -323,6 +326,20 @@ function fullUpdate(){
     return `<div class="row" data-q="${k}"><div class="th" style="background-image:url('${esc(s.th)}')">${time(s.s) ? `<span class="badge">${time(s.s)}</span>` : ''}</div><div class="tx"><div class="t1">${esc(s.t)}</div><div class="t2">${esc(s.c || '')}</div></div></div>`; }).join('')
     : `<div class="t2" style="padding:6px 16px">${shuffle ? 'En aleatorio: la siguiente se elige al azar.' : 'No hay más canciones en la lista.'}</div>`;
   $('flist').querySelectorAll('.row').forEach(el => el.onclick = () => start(+el.dataset.q));
+}
+// como en YouTube: tocar el canal de lo que suena abre ese canal
+async function goChannel(){
+  const it = queue[qi]; if (!it || !it.c) return;
+  closeFull();
+  if (it.cu) { openList({t: it.c, u: it.cu, k: 'channel', list: true, c: ''}); return; }
+  msg('Buscando el canal ' + it.c + '…');
+  try {
+    const r = await api('/api/buscar', {q: it.c});
+    const l = r.canales || [], n = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+    const ch = l.find(c => n(c.t) === n(it.c)) || l[0];
+    msg('');
+    if (ch) openList(ch); else msg('No encontré el canal.');
+  } catch (e) { msg(e.message); }
 }
 function openFull(){ fullUpdate(); $('full').classList.add('open'); $('full').scrollTop = 0; }
 function closeFull(){ $('full').classList.remove('open'); }
@@ -360,7 +377,7 @@ function resume(){
 }
 au.addEventListener('error', () => { if (fails++ < 3) setTimeout(resume, 1500); else next(); });
 let stuckTimer = null;
-au.addEventListener('waiting', () => { clearTimeout(stuckTimer); stuckTimer = setTimeout(() => { if (!au.paused && au.readyState < 3 && fails++ < 3) resume(); }, 12000); });
+au.addEventListener('waiting', () => { clearTimeout(stuckTimer); stuckTimer = setTimeout(() => { if (!au.paused && au.readyState < 3 && fails++ < 3) resume(); }, au.currentTime < 1 ? 45000 : 15000); });
 au.addEventListener('playing', () => { clearTimeout(stuckTimer); preNext(); });
 // pedirle al servidor que baje desde ya la siguiente canción
 let preDone = '';
