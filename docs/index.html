@@ -63,12 +63,16 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 .fbig{width:68px;height:68px;border-radius:34px;font-size:30px}
 .pb.on{color:var(--gold)}
 #fshuf:not(.on),#frep:not(.on){opacity:.4}
+.modes{display:flex;gap:6px;margin:10px 16px 0;background:var(--card);border-radius:22px;padding:4px;border:1px solid var(--line)}
+.mode{flex:1;padding:9px;border:0;border-radius:18px;background:transparent;color:var(--cream);font-size:15px;font-weight:600}
+.mode.on{background:var(--gold);color:#1a120b}
 #gate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;padding:30px}
 #gate input{padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:20px;text-align:center;letter-spacing:.2em;margin:16px 0}
 </style>
 </head>
 <body>
 <header><h1>✝ Alabanza</h1><div class="sub" id="st">Música cristiana y prédicas · sin anuncios</div></header>
+<div class="modes"><button class="mode on" id="mMus">🎵 Música</button><button class="mode" id="mPred">🎤 Prédicas</button></div>
 <input id="q" type="search" placeholder="Buscar canción, artista o canal · o pegar enlace" enterkeyhint="search">
 <div class="chips" id="chips"></div>
 <div id="view"></div>
@@ -108,8 +112,12 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 <script>
 const TOPIC = 'alabanza-yhepau56t8hn93x2';
 const CHIPS = [['Alabanza','alabanza'],['Adoración','adoración'],['Marcos Witt','Marcos Witt'],['Jesús Adrián Romero','Jesús Adrián Romero'],
-  ['Miel San Marcos','Miel San Marcos'],['Christine D\'Clario','Christine D\'Clario'],['Barak','Barak'],['Himnos','himnos cristianos'],
-  ['Prédicas','prédica cristiana'],['Dante Gebel','Dante Gebel prédica']];
+  ['Miel San Marcos','Miel San Marcos'],['Christine D\'Clario','Christine D\'Clario'],['Barak','Barak'],['Himnos','himnos cristianos']];
+// modo prédicas: temas y pastores
+const PCHIPS = [['Prédicas','prédica cristiana'],['Dante Gebel','Dante Gebel'],['Cash Luna','Cash Luna'],['Armando Alducin','Armando Alducin'],
+  ['Sugel Michelén','Sugel Michelén'],['Miguel Núñez','Miguel Núñez'],['Juan Carlos Harrigan','Juan Carlos Harrigan'],['Yesenia Then','Yesenia Then'],
+  ['Itiel Arroyo','Itiel Arroyo'],['Fe','fe'],['Familia','familia'],['Oración','oración'],['Esperanza','esperanza'],['Salvación','salvación']];
+let mode = 'musica';
 const $ = id => document.getElementById(id);
 const store = { get(k, d){ try { return localStorage.getItem(k) ?? d; } catch(e) { return d; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
 let KEY = store.get('clave', ''), SRV = store.get('srv', '');
@@ -193,18 +201,24 @@ let searchId = 0;
 async function search(q){
   const my = ++searchId;
   stack = []; $('view').innerHTML = '';
-  const old = cacheGet('b|' + q);
-  if (old) { showSearch(old); } else msg('Buscando…');
+  const pred = mode === 'pred', ck = (pred ? 'p|' : 'b|') + q;
+  const old = cacheGet(ck);
+  if (old) { showSearch(old); } else msg(pred ? 'Buscando prédicas…' : 'Buscando…');
   try {
-    const r = await api('/api/buscar', {q});
+    const r = await api('/api/buscar', pred ? {q, pred: 1} : {q});
     if (my !== searchId) return;
-    cachePut('b|' + q, r);
+    cachePut(ck, r);
     if (!old || stack.length === 0 && scrollY < 50 && !document.querySelector('.row.now')) showSearch(r);
   } catch (e) { if (my === searchId && !old) msg(e.message); }
 }
 function showSearch(r){
     msg('');
     const songs = r.canciones || [];
+    if (mode === 'pred') {
+      render([{title:'🎤 PRÉDICAS', items: songs, max: 8}, {title:'👤 PASTORES Y CANALES', items: r.canales, max: 3}, {title:'☰ SERIES Y LISTAS DE PRÉDICAS', items: r.listas, max: 4}]);
+      if (!songs.length && !(r.listas||[]).length && !(r.canales||[]).length) msg('No encontré prédicas con esa búsqueda.');
+      return;
+    }
     const mix = songs.length ? [{t: 'Mix de ' + songs[0].t, c: songs[0].c, th: songs[0].th, u: 'https://www.youtube.com/watch?v=' + vid(songs[0].u) + '&list=RD' + vid(songs[0].u), k: 'mix', list: true}] : [];
     render([{title:'🎵 CANCIONES', items: songs, max: 5}, {title:'👤 CANALES', items: r.canales, max: 2}, {title:'💿 ÁLBUMES', items: r.albumes, max: 3},
             {title:'✨ MIX', items: mix}, {title:'☰ LISTAS', items: r.listas, max: 3}]);
@@ -430,12 +444,25 @@ async function pasteLink(){
 function chipsOff(){ document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); }
 $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { chipsOff(); isUrl(v) ? openUrl(v) : search(v); $('q').blur(); } } });
 $('q').addEventListener('paste', () => setTimeout(() => { const v = $('q').value.trim(); if (isUrl(v)) { chipsOff(); openUrl(v); $('q').blur(); } }, 50));
-$('chips').innerHTML = `<button class="chip" id="paste">🔗 Pegar enlace</button><button class="chip" id="mine">⭐ Mis canales</button><button class="chip" id="hist">🕘 Historial</button>`
-  + CHIPS.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
-$('paste').onclick = () => { chipsOff(); pasteLink(); };
-$('mine').onclick = () => { chipsOff(); $('mine').classList.add('on'); showFollowed(); };
-$('hist').onclick = () => { chipsOff(); $('hist').classList.add('on'); showHistory(); };
-$('chips').querySelectorAll('.chip[data-i]').forEach(el => el.onclick = () => { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); $('q').value = ''; search(CHIPS[+el.dataset.i][1]); });
+function drawChips(){
+  const list = mode === 'pred' ? PCHIPS : CHIPS;
+  $('chips').innerHTML = `<button class="chip" id="paste">🔗 Pegar enlace</button><button class="chip" id="mine">⭐ Mis canales</button><button class="chip" id="hist">🕘 Historial</button>`
+    + list.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
+  $('paste').onclick = () => { chipsOff(); pasteLink(); };
+  $('mine').onclick = () => { chipsOff(); $('mine').classList.add('on'); showFollowed(); };
+  $('hist').onclick = () => { chipsOff(); $('hist').classList.add('on'); showHistory(); };
+  $('chips').querySelectorAll('.chip[data-i]').forEach(el => el.onclick = () => { chipsOff(); el.classList.add('on'); $('q').value = ''; search(list[+el.dataset.i][1]); });
+  $('q').placeholder = mode === 'pred' ? 'Buscar prédica o nombre del pastor…' : 'Buscar canción, artista o canal · o pegar enlace';
+}
+function setMode(m){
+  mode = m;
+  $('mMus').classList.toggle('on', m === 'musica'); $('mPred').classList.toggle('on', m === 'pred');
+  drawChips(); $('q').value = '';
+  search((m === 'pred' ? PCHIPS : CHIPS)[0][1]);
+}
+$('mMus').onclick = () => setMode('musica');
+$('mPred').onclick = () => setMode('pred');
+drawChips();
 if (!KEY) gate(); else search(CHIPS[0][1]);
 </script>
 </body>
