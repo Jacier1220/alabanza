@@ -264,6 +264,14 @@ function playAll(sh){ const songs = rows.map(r => r.it).filter(x => !x.list); if
 // ------------------------------------------------------------ reproductor (suena con la pantalla bloqueada)
 const au = $('au');
 let played = new Set(), fails = 0;
+// prédicas y mixes largos en el iPhone: HLS (la forma de Apple de transmitir audio, por pedacitos de ~10 s)
+const canHls = !!au.canPlayType('application/vnd.apple.mpegurl');
+const noHls = new Set();
+function srcFor(base, it){
+  const q = 'u=' + encodeURIComponent(it.u) + '&k=' + encodeURIComponent(KEY);
+  if (canHls && it.s > 900 && !noHls.has(it.u)) return base + '/hls.m3u8?' + q;
+  return base + '/audio?' + q;
+}
 function play(list, i){ queue = list.slice(); played = new Set(); start(i); }
 async function start(i){
   if (i < 0 || i >= queue.length) return;
@@ -274,7 +282,7 @@ async function start(i){
   $('cov').style.backgroundImage = `url('${it.th}')`;
   try {
     const base = await findServer(false);
-    au.src = base + '/audio?u=' + encodeURIComponent(it.u) + '&k=' + encodeURIComponent(KEY);
+    au.src = srcFor(base, it);
     await au.play();
   } catch (e) { /* iOS a veces pide tocar ▶ la primera vez */ }
   if ('mediaSession' in navigator) {
@@ -378,7 +386,8 @@ function resume(){
   const it = queue[qi]; if (!it) return;
   const t = au.currentTime;
   findServer(fails > 1).then(base => {
-    au.src = base + '/audio?u=' + encodeURIComponent(it.u) + '&k=' + encodeURIComponent(KEY);
+    if (fails >= 2) noHls.add(it.u);   // si la forma por pedacitos falló dos veces, se prueba la directa
+    au.src = srcFor(base, it);
     au.addEventListener('loadedmetadata', function f(){ au.removeEventListener('loadedmetadata', f); if (t > 1) au.currentTime = t; }, {once: true});
     au.play().catch(()=>{});
   }).catch(()=>{});
