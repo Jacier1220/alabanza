@@ -392,6 +392,7 @@ let preDone = '';
 function preNext(){
   const n = shuffle ? -1 : (qi + 1 < queue.length ? qi + 1 : -1);
   if (n < 0 || !queue[n] || preDone === queue[n].u) return;
+  if (queue[n].s > 900 || (queue[qi] && queue[qi].s > 900)) return;   // prédicas largas: no se bajan por adelantado
   preDone = queue[n].u;
   api('/api/pre', {u: queue[n].u}).catch(()=>{});
 }
