@@ -180,17 +180,35 @@ function backHead0(title, sub, songs){
 function push(){ stack.push($('view').innerHTML ? {html: $('view').innerHTML, rows, blocks: window._blocks, y: scrollY} : null); }
 function pop(){ const s = stack.pop(); if (!s) return; render(s.blocks); $('view').innerHTML = s.html; $('view').querySelectorAll('.row').forEach(el => el.onclick = () => tap(+el.dataset.i)); rows = s.rows; scrollTo(0, s.y); }
 
+// búsquedas guardadas en el iPhone: salen al instante y luego se actualizan
+function cacheGet(k){ try { return JSON.parse(store.get('cache', '{}'))[k]; } catch(e) { return null; } }
+function cachePut(k, v){
+  try {
+    const c = JSON.parse(store.get('cache', '{}')); c[k] = v;
+    const keys = Object.keys(c); while (keys.length > 25) delete c[keys.shift()];
+    store.set('cache', JSON.stringify(c));
+  } catch(e) {}
+}
+let searchId = 0;
 async function search(q){
-  stack = []; msg('Buscando…'); $('view').innerHTML = '';
+  const my = ++searchId;
+  stack = []; $('view').innerHTML = '';
+  const old = cacheGet('b|' + q);
+  if (old) { showSearch(old); } else msg('Buscando…');
   try {
     const r = await api('/api/buscar', {q});
+    if (my !== searchId) return;
+    cachePut('b|' + q, r);
+    if (!old || stack.length === 0 && scrollY < 50 && !document.querySelector('.row.now')) showSearch(r);
+  } catch (e) { if (my === searchId && !old) msg(e.message); }
+}
+function showSearch(r){
     msg('');
     const songs = r.canciones || [];
     const mix = songs.length ? [{t: 'Mix de ' + songs[0].t, c: songs[0].c, th: songs[0].th, u: 'https://www.youtube.com/watch?v=' + vid(songs[0].u) + '&list=RD' + vid(songs[0].u), k: 'mix', list: true}] : [];
     render([{title:'🎵 CANCIONES', items: songs, max: 5}, {title:'👤 CANALES', items: r.canales, max: 2}, {title:'💿 ÁLBUMES', items: r.albumes, max: 3},
             {title:'✨ MIX', items: mix}, {title:'☰ LISTAS', items: r.listas, max: 3}]);
     if (!songs.length && !(r.albumes||[]).length && !(r.listas||[]).length && !(r.canales||[]).length) msg('No encontré música cristiana con esa búsqueda.');
-  } catch (e) { msg(e.message); }
 }
 function vid(u){ const m = /[?&]v=([^&]+)/.exec(u||''); return m ? m[1] : (u||'').split('/').pop(); }
 
@@ -316,7 +334,28 @@ function next(){ const n = nextIndex(); if (n >= 0) start(n); }
 function ended(){ if (repeat === 2) { au.currentTime = 0; au.play().catch(()=>{}); } else next(); }
 function prev(){ if (au.currentTime > 5) au.currentTime = 0; else if (qi > 0) start(qi - 1); }
 au.addEventListener('ended', ended);
-au.addEventListener('error', () => { if (fails++ < 1) setTimeout(() => { const t = au.currentTime; au.load(); au.play().catch(()=>{}); }, 1200); else next(); });
+// si se traba: volver a pedir desde el mismo segundo (hasta 3 veces), luego pasar a la siguiente
+function resume(){
+  const it = queue[qi]; if (!it) return;
+  const t = au.currentTime;
+  findServer(fails > 1).then(base => {
+    au.src = base + '/audio?u=' + encodeURIComponent(it.u) + '&k=' + encodeURIComponent(KEY);
+    au.addEventListener('loadedmetadata', function f(){ au.removeEventListener('loadedmetadata', f); if (t > 1) au.currentTime = t; }, {once: true});
+    au.play().catch(()=>{});
+  }).catch(()=>{});
+}
+au.addEventListener('error', () => { if (fails++ < 3) setTimeout(resume, 1500); else next(); });
+let stuckTimer = null;
+au.addEventListener('waiting', () => { clearTimeout(stuckTimer); stuckTimer = setTimeout(() => { if (!au.paused && au.readyState < 3 && fails++ < 3) resume(); }, 12000); });
+au.addEventListener('playing', () => { clearTimeout(stuckTimer); preNext(); });
+// pedirle al servidor que baje desde ya la siguiente canción
+let preDone = '';
+function preNext(){
+  const n = shuffle ? -1 : (qi + 1 < queue.length ? qi + 1 : -1);
+  if (n < 0 || !queue[n] || preDone === queue[n].u) return;
+  preDone = queue[n].u;
+  api('/api/pre', {u: queue[n].u}).catch(()=>{});
+}
 au.addEventListener('play', () => { $('bplay').textContent = '⏸'; $('fplay').textContent = '⏸'; });
 au.addEventListener('pause', () => { $('bplay').textContent = '▶'; $('fplay').textContent = '▶'; });
 au.addEventListener('timeupdate', () => {
