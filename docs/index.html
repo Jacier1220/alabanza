@@ -62,6 +62,7 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 .fbtns{display:flex;justify-content:space-around;align-items:center;padding:12px 18px 6px}
 .fbig{width:68px;height:68px;border-radius:34px;font-size:30px}
 .pb.on{color:var(--gold)}
+#fshuf:not(.on),#frep:not(.on){opacity:.4}
 #gate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;padding:30px}
 #gate input{padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:20px;text-align:center;letter-spacing:.2em;margin:16px 0}
 </style>
@@ -244,7 +245,34 @@ async function start(i){
   }
   document.querySelectorAll('.row').forEach(el => { const r = rows[+el.dataset.i]; el.classList.toggle('now', !!r && !r.it.list && r.it.u === it.u); });
   fullUpdate();
+  addHistory(it);
 }
+
+// ------------------------------------------------------------ historial (se guarda en este iPhone, últimas 200)
+function histList(){ try { return JSON.parse(store.get('historial', '[]')); } catch(e) { return []; } }
+function addHistory(it){
+  const l = histList().filter(h => h.u !== it.u);
+  l.unshift({t: it.t, c: it.c || '', u: it.u, th: it.th || '', s: it.s || 0, cuando: Date.now()});
+  store.set('historial', JSON.stringify(l.slice(0, 200)));
+}
+function ago(ms){
+  const d = new Date(ms), hoy = new Date(); hoy.setHours(0,0,0,0);
+  if (d >= hoy) return 'HOY';
+  if (d >= hoy - 86400000) return 'AYER';
+  if (d >= hoy - 6 * 86400000) return 'ESTA SEMANA';
+  return 'ANTES';
+}
+function showHistory(){
+  stack = []; scrollTo(0,0);
+  const l = histList();
+  msg(l.length ? '' : 'Todavía no has escuchado nada.\nLo que reproduzcas va a aparecer aquí.');
+  const groups = [];
+  for (const h of l) { const g = ago(h.cuando); let b = groups.find(x => x.title === '🕘 ' + g); if (!b) groups.push(b = {title: '🕘 ' + g, items: []}); b.items.push(h); }
+  const head = l.length ? `<div class="btns"><button class="btn gold" onclick="playAll(false)">▶ Reproducir todo</button><button class="btn" onclick="clearHistory()">🗑 Borrar</button></div>` : '';
+  qname = 'Historial';
+  render(groups, head);
+}
+function clearHistory(){ if (confirm('¿Borrar todo el historial?')) { store.set('historial', '[]'); showHistory(); } }
 
 // ------------------------------------------------------------ reproductor grande (sube desde la barra)
 let repeat = 0;   // 0 no, 1 toda la lista, 2 una canción
@@ -353,10 +381,11 @@ async function pasteLink(){
 function chipsOff(){ document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); }
 $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { chipsOff(); isUrl(v) ? openUrl(v) : search(v); $('q').blur(); } } });
 $('q').addEventListener('paste', () => setTimeout(() => { const v = $('q').value.trim(); if (isUrl(v)) { chipsOff(); openUrl(v); $('q').blur(); } }, 50));
-$('chips').innerHTML = `<button class="chip" id="paste">🔗 Pegar enlace</button><button class="chip" id="mine">⭐ Mis canales</button>`
+$('chips').innerHTML = `<button class="chip" id="paste">🔗 Pegar enlace</button><button class="chip" id="mine">⭐ Mis canales</button><button class="chip" id="hist">🕘 Historial</button>`
   + CHIPS.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
 $('paste').onclick = () => { chipsOff(); pasteLink(); };
 $('mine').onclick = () => { chipsOff(); $('mine').classList.add('on'); showFollowed(); };
+$('hist').onclick = () => { chipsOff(); $('hist').classList.add('on'); showHistory(); };
 $('chips').querySelectorAll('.chip[data-i]').forEach(el => el.onclick = () => { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); $('q').value = ''; search(CHIPS[+el.dataset.i][1]); });
 if (!KEY) gate(); else search(CHIPS[0][1]);
 </script>
