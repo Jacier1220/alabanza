@@ -245,7 +245,10 @@ async function openList(it){
       const r = await api('/api/lista', {u: it.u, mix: it.k === 'mix' ? 1 : 0});
       msg(r.length ? '' : 'Esta lista no tiene canciones.');
       qname = it.t;
-      render([{items: r}], backHead(it.t, (it.k === 'album' ? 'Álbum' : it.k === 'mix' ? 'Mix' : 'Lista') + ' · ' + r.length + ' canciones', r.length));
+      window._owner = it;
+      const own = it.k !== 'mix' && it.c && it.c !== 'YouTube'
+        ? `<div class="btns" style="padding-top:0"><button class="chbtn" onclick="ownerChannel()">👤 ${esc(it.c)} <span>› Ir al canal</span></button></div>` : '';
+      render([{items: r}], backHead(it.t, (it.k === 'album' ? 'Álbum' : it.k === 'mix' ? 'Mix' : 'Lista') + ' · ' + r.length + ' canciones', r.length) + own);
     }
   } catch (e) { msg(e.message); }
 }
@@ -328,9 +331,14 @@ function fullUpdate(){
   $('flist').querySelectorAll('.row').forEach(el => el.onclick = () => start(+el.dataset.q));
 }
 // como en YouTube: tocar el canal de lo que suena abre ese canal
+function ownerChannel(){ const l = window._owner; if (l) channelOf(l.c, l.cu); }
 async function goChannel(){
   const it = queue[qi]; if (!it || !it.c) return;
   closeFull();
+  channelOf(it.c, it.cu);
+}
+async function channelOf(name, cu){
+  const it = {c: name, cu};
   if (it.cu) { openList({t: it.c, u: it.cu, k: 'channel', list: true, c: ''}); return; }
   msg('Buscando el canal ' + it.c + '…');
   try {
