@@ -20,7 +20,7 @@ header{padding:18px 16px 6px}
 h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 .sub{color:var(--dim);font-size:13px;margin-top:2px}
 #q{width:calc(100% - 32px);margin:10px 16px 6px;padding:12px 18px;border-radius:24px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:16px;outline:none}
-.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 16px 4px;scrollbar-width:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:6px 16px 4px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;padding:8px 14px;border-radius:18px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:14px}
 .chip.on{background:var(--gold);color:#1a120b;border-color:var(--gold)}
@@ -68,6 +68,19 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 .modes{display:flex;gap:6px;margin:10px 16px 0;background:var(--card);border-radius:22px;padding:4px;border:1px solid var(--line)}
 .mode{flex:1;padding:9px;border:0;border-radius:18px;background:transparent;color:var(--cream);font-size:15px;font-weight:600}
 .mode.on{background:var(--gold);color:#1a120b}
+.tog{flex:none;padding:8px 14px;border-radius:18px;border:1px solid var(--line);background:#fff1dc22;color:var(--cream);font-size:14px;font-weight:700}
+.tog.open{background:#e8b04b55;border-color:var(--gold)}
+.tog.has{background:var(--gold);color:#1a120b;border-color:var(--gold)}
+.dpanel{margin:4px 12px 6px;padding:10px 0 6px;border-radius:18px;border:1px solid #e8b04b33;background:#00000022;max-height:46vh;overflow-y:auto;display:none}
+.dpanel.open{display:block}
+.dq{width:calc(100% - 24px);margin:0 12px 2px;padding:10px 16px;border-radius:22px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:16px;outline:none}
+.mn{flex:none;width:38px;height:38px;border-radius:19px;border:0;background:transparent;color:var(--dim);font-size:22px;line-height:1}
+#sheet{position:fixed;inset:0;z-index:9;background:#000a;display:none;align-items:flex-end}
+#sheet.open{display:flex}
+#sheet .box{width:100%;background:#24180d;border-radius:20px 20px 0 0;padding:14px 10px calc(14px + env(safe-area-inset-bottom));max-height:80vh;overflow-y:auto}
+#sheet .st{color:var(--gold);font-weight:700;padding:4px 10px 10px;font-size:15px}
+#sheet .op{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--cream);font-size:17px;padding:13px 12px;border-radius:12px}
+#sheet .op:active{background:#e8b04b33}
 #gate{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;justify-content:center;padding:30px}
 #gate input{padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--cream);font-size:20px;text-align:center;letter-spacing:.2em;margin:16px 0}
 </style>
@@ -77,6 +90,8 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 <div class="modes"><button class="mode on" id="mMus">🎵 Música</button><button class="mode" id="mPred">🎤 Prédicas</button></div>
 <input id="q" type="search" placeholder="Buscar canción, artista o canal · o pegar enlace" enterkeyhint="search">
 <div class="chips" id="chips"></div>
+<div class="chips" id="togs"></div>
+<div id="drops"></div>
 <div id="view"></div>
 <div id="msg"></div>
 
@@ -92,6 +107,7 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
   <div class="fhead"><button class="back" id="fclose">⌄</button><div class="fq" id="fq">Reproduciendo</div><span style="width:40px"></span></div>
   <div id="fcov"></div>
   <div class="ft" id="ft"></div><div class="fc" id="fc"></div>
+  <div class="btns" style="padding:10px 24px 0"><button class="btn" id="faddpl">➕ Agregar a playlist</button></div>
   <input id="fprog" type="range" min="0" max="1000" value="0">
   <div class="ftime"><span id="fcur">0:00</span><span id="fdur"></span></div>
   <div class="fbtns">
@@ -103,6 +119,7 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
   <div id="flist"></div>
 </div>
 <audio id="au" preload="auto"></audio>
+<div id="sheet"><div class="box" id="sbox"></div></div>
 
 <div id="gate">
   <h1>✝ Alabanza</h1>
@@ -113,12 +130,27 @@ h1{margin:0;font-family:Georgia,serif;color:var(--gold);font-size:30px}
 
 <script>
 const TOPIC = 'alabanza-yhepau56t8hn93x2';
-const CHIPS = [['Alabanza','alabanza'],['Adoración','adoración'],['Marcos Witt','Marcos Witt'],['Jesús Adrián Romero','Jesús Adrián Romero'],
-  ['Miel San Marcos','Miel San Marcos'],['Christine D\'Clario','Christine D\'Clario'],['Barak','Barak'],['Himnos','himnos cristianos']];
-// modo prédicas: temas y pastores
-const PCHIPS = [['Prédicas','prédica cristiana'],['Dante Gebel','Dante Gebel'],['Cash Luna','Cash Luna'],['Armando Alducin','Armando Alducin'],
-  ['Sugel Michelén','Sugel Michelén'],['Miguel Núñez','Miguel Núñez'],['Juan Carlos Harrigan','Juan Carlos Harrigan'],['Yesenia Then','Yesenia Then'],
-  ['Itiel Arroyo','Itiel Arroyo'],['Fe','fe'],['Familia','familia'],['Oración','oración'],['Esperanza','esperanza'],['Salvación','salvación']];
+const CHIPS = [['🙌 Alabanza','alabanzas cristianas alegres'],['🕊 Adoración','adoración cristiana'],['📜 Himnos','himnos cristianos antiguos'],
+  ['🎉 Coros','coros de júbilo cristianos'],['🎹 Instrumental','música cristiana instrumental'],['🙏 Para orar','música para orar adoración profunda'],
+  ['🧒 Niños','canciones cristianas para niños']];
+const ADORADORES = ['Marcos Witt','Jesús Adrián Romero','Marcela Gándara',"Christine D'Clario",'Miel San Marcos','Barak','Danilo Montero',
+  'Alex Campos','Julio Melgar','Su Presencia','Nancy Ramírez','Lilly Goodman','Redimi2','Generación 12','Ingrid Rosario','Juan Carlos Alvarado',
+  'Marco Barrientos','Daniel Calveti','Marcos Vidal','Jaime Murrell','Ricardo Rodríguez','Evan Craft','Kike Pavón','Rojo','Tercer Cielo',
+  'Abel Zavala','Coalo Zamorano','Montesanto','Grupo Grace','Hillsong en Español','Living','Twice Música','Averly Morillo','Jaci Velásquez',
+  'Ruth Mixter','Álex Zurdo','Funky','Gilberto Daza','Kairo Worship','Marcos Brunet'];
+const PREDICADORES = ['Dante Gebel','Cash Luna','Armando Alducin','Yiye Ávila','Sugel Michelén','Miguel Núñez','Juan Carlos Harrigan',
+  'Yesenia Then','Itiel Arroyo','Juan Manuel Vaz','Carlos Annacondia','Chuy Olivares','Guillermo Maldonado','Freddy DeAnda','Luis Palau',
+  'Josué Yrion','Rey Matos','Andrés Corson','Ana Maldonado','Otto Sánchez','Ruddy Gracia','Sixto Porras','Héctor de la Cruz'];
+const TEMAS = [['Prédicas','prédica cristiana'],['Fe','fe'],['Familia','familia'],['Oración','oración'],['Esperanza','esperanza'],
+  ['Salvación','salvación'],['Matrimonio','matrimonio'],['Jóvenes','jóvenes'],['Sanidad','sanidad']];
+const PCHIPS = TEMAS;
+// listas que se despliegan hacia abajo, cada una con su buscador
+const DROPS = {
+  musica: [{name: '🎵 Categorías', hint: '🔎 Buscar otra música…', items: CHIPS},
+           {name: '🙌 Adoradores', hint: '🔎 Buscar otro adorador…', items: ADORADORES.map(a => [a, a]), artist: true}],
+  pred: [{name: '📖 Predicadores', hint: '🔎 Buscar otro predicador…', items: PREDICADORES.map(a => [a, a])},
+         {name: '📚 Temas', hint: '🔎 Buscar otro tema…', items: TEMAS}]};
+let openDrop = -1, dropSel = null;   // dropSel = {g, name}
 let mode = 'musica';
 const $ = id => document.getElementById(id);
 const store = { get(k, d){ try { return localStorage.getItem(k) ?? d; } catch(e) { return d; } }, set(k, v){ try { localStorage.setItem(k, v); } catch(e) {} } };
@@ -155,11 +187,12 @@ async function api(path, params){
 function rowHtml(it, i){
   const kind = it.k || 'song', list = it.list;
   const cls = kind === 'channel' ? 'round' : (list && kind !== 'mix') ? 'sq' : '';
-  const label = kind === 'channel' ? '👤 Canal' : kind === 'album' ? '💿 Álbum' : kind === 'mix' ? '✨ Mix' : list ? '☰ Lista' : '🎵 Canción';
+  const label = kind === 'channel' ? '👤 Canal' : kind === 'album' ? '💿 Álbum' : kind === 'mix' || kind === 'longmix' ? '✨ Mix'
+    : kind === 'mypl' ? '🎶 Mi playlist' : list ? '☰ Lista' : '🎵 Canción';
   const badge = list ? (it.n ? '☰ ' + it.n : '') : time(it.s);
   const now = !list && queue[qi] && queue[qi].u === it.u ? ' now' : '';
   return `<div class="row${now}" data-i="${i}"><div class="th ${cls}" style="background-image:url('${esc(it.th)}')">${badge ? `<span class="badge">${badge}</span>` : ''}</div>
-    <div class="tx"><div class="t1">${esc(it.t)}</div><div class="t2">${label}${it.c ? ' · ' + esc(it.c) : ''}</div></div></div>`;
+    <div class="tx"><div class="t1">${esc(it.t)}</div><div class="t2">${label}${it.c ? ' · ' + esc(it.c) : ''}</div></div>${list ? '' : `<button class="mn" data-m="${i}">⋯</button>`}</div>`;
 }
 
 let rows = [];
@@ -174,7 +207,7 @@ function render(blocks, head){
     if (b.max && b.items.length > b.max) { h += `<div class="more" data-more="${blocks.indexOf(b)}">Ver todos (${b.items.length}) ›</div>`; }
   }
   $('view').innerHTML = h;
-  $('view').querySelectorAll('.row').forEach(el => el.onclick = () => tap(+el.dataset.i));
+  bindRows();
   prep(rows.map(r => r.it));
   $('view').querySelectorAll('.more').forEach(el => el.onclick = () => { const b = blocks[+el.dataset.more]; push(); render([{title: b.title, items: b.items}], backHead(b.title.replace(/^[^A-ZÁÉÍÓÚ]+/, ''))); scrollTo(0,0); });
   window._blocks = blocks;
@@ -197,7 +230,11 @@ function backHead0(title, sub, songs){
     + (songs ? `<div class="btns"><button class="btn gold" onclick="playAll(false)">▶ Reproducir</button><button class="btn" onclick="playAll(true)">🔀 Aleatorio</button></div>` : '');
 }
 function push(){ stack.push($('view').innerHTML ? {html: $('view').innerHTML, rows, blocks: window._blocks, y: scrollY} : null); }
-function pop(){ const s = stack.pop(); if (!s) return; viewId++; render(s.blocks); $('view').innerHTML = s.html; $('view').querySelectorAll('.row').forEach(el => el.onclick = () => tap(+el.dataset.i)); rows = s.rows; scrollTo(0, s.y); }
+function pop(){ const s = stack.pop(); if (!s) return; viewId++; curPl = null; render(s.blocks); $('view').innerHTML = s.html; rows = s.rows; bindRows(); scrollTo(0, s.y); }
+function bindRows(){
+  $('view').querySelectorAll('.row').forEach(el => el.onclick = () => tap(+el.dataset.i));
+  $('view').querySelectorAll('.mn').forEach(el => el.onclick = e => { e.stopPropagation(); songMenu(+el.dataset.m); });
+}
 
 // búsquedas guardadas en el iPhone: salen al instante y luego se actualizan
 function cacheGet(k){ try { return JSON.parse(store.get('cache', '{}'))[k]; } catch(e) { return null; } }
@@ -209,10 +246,34 @@ function cachePut(k, v){
     catch (e) { const half = {}; Object.keys(c).slice(-12).forEach(k => half[k] = c[k]); store.set('cache', JSON.stringify(half)); }   // lleno: dejar las últimas
   } catch(e) {}
 }
-let searchId = 0;
-async function search(q){
+let searchId = 0, curArtist = null, curMix = [], curQ = '';
+const n0 = s => (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const COMP = /\bmix\b|megamix|\bhoras?\b|\b1 hora|album completo|disco completo|full album|enganchad|popurri|medley|lo mejor de|recopilacion|concierto completo|en vivo completo|playlist|\blista\b|\bvol(umen)? ?\d|\d+ ?(alabanzas|canciones|himnos|coros|exitos|temas|adoraciones)|musica (para|de) (orar|dormir|estudiar|fondo)|\bsin anuncios\b|\bnon ?stop\b|\bseguidas\b/;
+function isSong(it){ return it.s >= 60 && it.s <= 660 && !COMP.test(n0(it.t)); }
+function isMix(it){ return it.s >= 1200 || (it.s >= 480 && COMP.test(n0(it.t))); }
+function onlyArtist(l, a){
+  if (!a || !l) return l || [];
+  const k = ' ' + n0(a) + ' ', f = l.filter(x => (' ' + n0(x.c) + ' ').includes(k) || (' ' + n0(x.t) + ' ').includes(k));
+  return f.length ? f : l;   // si no hay nada de él, se muestra lo encontrado
+}
+function addMixes(l){ for (const x of l || []) if (!x.list && isMix(x) && !curMix.some(m => vid(m.u) === vid(x.u))) curMix.push(Object.assign({}, x, {k: 'longmix'})); }
+async function search(q, artist){
   const my = ++searchId; viewId++;
+  curPl = null;
+  curQ = q; curMix = [];
+  curArtist = artist || (mode === 'musica' ? (ADORADORES.find(a => n0(a) === n0(q)) || null) : null);
   stack = []; $('view').innerHTML = '';
+  if (mode === 'musica') {
+    // los mix largos (20 min en adelante) se buscan aparte
+    const mk = 'm|' + q, om = cacheGet(mk);
+    if (om) addMixes(om.canciones);
+    api('/api/buscar', {q: /mix/i.test(q) ? q : q + ' mix'}).then(r => {
+      cachePut(mk, r);
+      if (my !== searchId) return;
+      const before = curMix.length; addMixes(r.canciones);
+      if (curMix.length !== before && window._last && stack.length === 0 && scrollY < 50) showSearch(window._last);
+    }).catch(()=>{});
+  }
   const pred = mode === 'pred', ck = (pred ? 'p|' : 'b|') + q;
   const old = cacheGet(ck);
   if (old) { showSearch(old); } else msg(pred ? 'Buscando prédicas…' : 'Buscando…');
@@ -225,16 +286,22 @@ async function search(q){
 }
 function showSearch(r){
     msg('');
-    const songs = r.canciones || [];
+    window._last = r;
+    let songs = r.canciones || [];
     if (mode === 'pred') {
       render([{title:'🎤 PRÉDICAS', items: songs, max: 8}, {title:'👤 PASTORES Y CANALES', items: r.canales, max: 3}, {title:'☰ SERIES Y LISTAS DE PRÉDICAS', items: r.listas, max: 4}]);
       if (!songs.length && !(r.listas||[]).length && !(r.canales||[]).length) msg('No encontré prédicas con esa búsqueda.');
       return;
     }
-    const mix = songs.length ? [{t: 'Mix de ' + songs[0].t, c: songs[0].c, th: songs[0].th, u: 'https://www.youtube.com/watch?v=' + vid(songs[0].u) + '&list=RD' + vid(songs[0].u), k: 'mix', list: true}] : [];
-    render([{title:'🎵 CANCIONES', items: songs, max: 5}, {title:'👤 CANALES', items: r.canales, max: 2}, {title:'💿 ÁLBUMES', items: r.albumes, max: 3},
-            {title:'✨ MIX', items: mix}, {title:'☰ LISTAS', items: r.listas, max: 3}]);
-    if (!songs.length && !(r.albumes||[]).length && !(r.listas||[]).length && !(r.canales||[]).length) msg('No encontré música cristiana con esa búsqueda.');
+    addMixes(songs);
+    songs = onlyArtist(songs.filter(isSong), curArtist);
+    const all = r.albumes || [], real = all.some(a => /OLAK5uy/.test(a.u));
+    const albums = onlyArtist(real ? all.filter(a => /OLAK5uy/.test(a.u)) : all, curArtist);
+    const lists = onlyArtist((r.listas || []).filter(l => !/OLAK5uy/.test(l.u)), curArtist);
+    const mixes = onlyArtist(curMix, curArtist);
+    render([{title:'🎵 CANCIONES', items: songs, max: 5}, {title:'✨ MIX (20 MIN EN ADELANTE)', items: mixes, max: 3},
+            {title:'💿 ÁLBUMES', items: albums, max: 4}, {title:'☰ LISTAS', items: lists, max: 4}, {title:'👤 CANALES', items: r.canales, max: 2}]);
+    if (!songs.length && !albums.length && !lists.length && !mixes.length && !(r.canales||[]).length) msg('No encontré música cristiana con esa búsqueda.');
 }
 function vid(u){ const m = /[?&]v=([^&]+)/.exec(u||''); return m ? m[1] : (u||'').split('/').pop(); }
 
@@ -273,6 +340,7 @@ function showListData(it, r){
 
 function tap(i){
   const {it, from} = rows[i];
+  if (it.k === 'mypl') { openPlaylist(it.id); return; }
   if (it.list) { openList(it); return; }
   const songs = from.filter(x => !x.list);
   play(songs, songs.indexOf(it));
@@ -500,27 +568,145 @@ async function pasteLink(){
   if (!isUrl(v)) v = prompt('Pega aquí el enlace de YouTube (video, lista o canal):', v) || '';
   if (v.trim()) { $('q').value = v.trim(); openUrl(v); }
 }
-function chipsOff(){ document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); }
 $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { chipsOff(); isUrl(v) ? openUrl(v) : search(v); $('q').blur(); } } });
 $('q').addEventListener('paste', () => setTimeout(() => { const v = $('q').value.trim(); if (isUrl(v)) { chipsOff(); openUrl(v); $('q').blur(); } }, 50));
+function chipsOff(){ document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); dropSel = null; curPl = null; closeDrop(); }
 function drawChips(){
-  const list = mode === 'pred' ? PCHIPS : CHIPS;
-  $('chips').innerHTML = `<button class="chip" id="paste">🔗 Pegar enlace</button><button class="chip" id="mine">⭐ Mis canales</button><button class="chip" id="hist">🕘 Historial</button>`
-    + list.map((c, i) => `<button class="chip${i===0?' on':''}" data-i="${i}">${esc(c[0])}</button>`).join('');
+  $('chips').innerHTML = `<button class="chip" id="mypl">🎶 Mis playlists</button><button class="chip" id="mine">⭐ Mis canales</button><button class="chip" id="hist">🕘 Historial</button><button class="chip" id="paste">🔗 Pegar enlace</button>`;
   $('paste').onclick = () => { chipsOff(); pasteLink(); };
+  $('mypl').onclick = () => { chipsOff(); $('mypl').classList.add('on'); showPlaylists(); };
   $('mine').onclick = () => { chipsOff(); $('mine').classList.add('on'); showFollowed(); };
   $('hist').onclick = () => { chipsOff(); $('hist').classList.add('on'); showHistory(); };
-  $('chips').querySelectorAll('.chip[data-i]').forEach(el => el.onclick = () => { chipsOff(); el.classList.add('on'); $('q').value = ''; search(list[+el.dataset.i][1]); });
-  $('q').placeholder = mode === 'pred' ? 'Buscar prédica o nombre del pastor…' : 'Buscar canción, artista o canal · o pegar enlace';
+  const ds = DROPS[mode];
+  $('togs').innerHTML = ds.map((d, g) => `<button class="tog" data-g="${g}"></button>`).join('');
+  $('drops').innerHTML = ds.map((d, g) => `<div class="dpanel" id="dp${g}"><input class="dq" type="search" enterkeyhint="search" placeholder="${esc(d.hint)}">`
+    + `<div class="chips">${d.items.map((c, i) => `<button class="chip" data-g="${g}" data-i="${i}">${esc(c[0])}</button>`).join('')}</div></div>`).join('');
+  $('togs').querySelectorAll('.tog').forEach(el => el.onclick = () => toggleDrop(+el.dataset.g));
+  $('drops').querySelectorAll('.chip').forEach(el => el.onclick = () => {
+    const g = +el.dataset.g, d = DROPS[mode][g], c = d.items[+el.dataset.i];
+    pickDrop(g, c[0], c[1], d.artist ? c[1] : null);
+  });
+  $('drops').querySelectorAll('.dq').forEach((el, g) => el.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    const v = el.value.trim(); el.blur();
+    if (!v) return;
+    const d = DROPS[mode][g];
+    pickDrop(g, v, v, d.artist ? v : null);
+  }));
+  styleTogs();
+  $('q').placeholder = mode === 'pred' ? 'Buscar prédica o nombre del pastor…' : 'Buscar canción, adorador o canal · o pegar enlace';
 }
+function pickDrop(g, name, q, artist){
+  document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('on'));
+  dropSel = {g, name}; closeDrop(); $('q').value = '';
+  search(q, artist);
+}
+function toggleDrop(g){
+  openDrop = openDrop === g ? -1 : g;
+  document.querySelectorAll('.dpanel').forEach((el, k) => { el.classList.toggle('open', k === openDrop); el.scrollTop = 0; });
+  styleTogs();
+}
+function closeDrop(){ openDrop = -1; document.querySelectorAll('.dpanel').forEach(el => el.classList.remove('open')); document.querySelectorAll('.dq').forEach(el => el.value = ''); styleTogs(); }
+function styleTogs(){
+  document.querySelectorAll('.tog').forEach(el => {
+    const g = +el.dataset.g, d = DROPS[mode][g], open = openDrop === g, has = dropSel && dropSel.g === g;
+    el.textContent = d.name + (has && !open ? ' · ' + dropSel.name : '') + (open ? '  ▴' : '  ▾');
+    el.classList.toggle('open', open); el.classList.toggle('has', !!has && !open);
+  });
+}
+
+// ------------------------------------------------------------ hoja de opciones (como el menú de mantener presionado)
+function sheet(title, ops){
+  $('sbox').innerHTML = `<div class="st">${esc(title)}</div>` + ops.map((o, i) => `<button class="op" data-o="${i}">${esc(o[0])}</button>`).join('')
+    + `<button class="op" data-o="x" style="color:var(--dim)">Cancelar</button>`;
+  $('sbox').querySelectorAll('.op').forEach(el => el.onclick = () => { $('sheet').classList.remove('open'); if (el.dataset.o !== 'x') ops[+el.dataset.o][1](); });
+  $('sheet').classList.add('open');
+}
+$('sheet').onclick = e => { if (e.target === $('sheet')) $('sheet').classList.remove('open'); };
+
+// ------------------------------------------------------------ mis playlists (se guardan en este iPhone aunque se cierre la página)
+let curPl = null;
+function pls(){ try { return JSON.parse(store.get('playlists', '[]')); } catch(e) { return []; } }
+function savePls(l){ store.set('playlists', JSON.stringify(l)); }
+function plSong(it){ return {t: it.t, c: it.c || '', cu: it.cu || '', u: it.u, th: it.th || '', s: it.s || 0}; }
+function newPl(then){
+  const name = (prompt('Nombre de la playlist:', '') || '').trim();
+  if (!name) return;
+  const l = pls(), p = {id: 'pl' + Date.now(), name, songs: []};
+  l.unshift(p); savePls(l);
+  if (then) then(p); else showPlaylists();
+}
+function showPlaylists(){
+  stack = []; scrollTo(0,0); curPl = null; viewId++;
+  const l = pls();
+  msg(l.length ? '' : 'Todavía no tienes playlists.\nToca «＋ Nueva playlist» y ponle un nombre.\nDespués, en cualquier canción toca ⋯ → «➕ Agregar a playlist».');
+  const items = l.map(p => ({t: p.name, k: 'mypl', list: true, id: p.id, n: p.songs.length, th: p.songs[0] ? p.songs[0].th : '', c: p.songs.length + (p.songs.length === 1 ? ' canción' : ' canciones')}));
+  render([{title: '🎶 MIS PLAYLISTS', items}], `<div class="btns"><button class="btn gold" onclick="newPl()">＋ Nueva playlist</button></div>`);
+  $('view').querySelectorAll('.row').forEach(el => {
+    let t = null;   // mantener presionada una playlist: cambiar nombre o borrar
+    el.addEventListener('touchstart', () => { t = setTimeout(() => { t = 'x'; plMenu(rows[+el.dataset.i].it.id); }, 600); }, {passive: true});
+    el.addEventListener('touchend', e => { if (t === 'x') e.preventDefault(); clearTimeout(t); });
+    el.addEventListener('touchmove', () => clearTimeout(t), {passive: true});
+  });
+}
+function openPlaylist(id){
+  const p = pls().find(x => x.id === id); if (!p) { showPlaylists(); return; }
+  if (!curPl) push();
+  curPl = id; qname = p.name; scrollTo(0,0);
+  const n = p.songs.length;
+  msg(n ? '' : 'Esta playlist está vacía.\nBusca una canción, toca ⋯ y luego «➕ Agregar a playlist».\nO mientras suena, abre el reproductor grande → «➕ Agregar a playlist».');
+  const head = `<div class="head"><button class="back" onclick="showPlaylists()">←</button><div><div class="htitle">🎶 ${esc(p.name)}</div><div class="t2">${n} ${n === 1 ? 'canción' : 'canciones'} · toca ⋯ para quitar o mover</div></div></div>`
+    + `<div class="btns">${n ? `<button class="btn gold" onclick="playAll(false)">▶ Reproducir</button><button class="btn" onclick="playAll(true)">🔀 Aleatorio</button>` : ''}<button class="btn" onclick="plMenu('${p.id}')">✏ Opciones</button></div>`;
+  render([{items: p.songs}], head);
+}
+function plMenu(id){
+  const p = pls().find(x => x.id === id); if (!p) return;
+  sheet('🎶 ' + p.name, [
+    ['▶ Abrir', () => openPlaylist(id)],
+    ['✏ Cambiar el nombre', () => { const v = (prompt('Nuevo nombre:', p.name) || '').trim(); if (!v) return; const l = pls(); l.find(x => x.id === id).name = v; savePls(l); curPl ? openPlaylist(id) : showPlaylists(); }],
+    ['🗑 Borrar esta playlist', () => { if (!confirm('¿Borrar «' + p.name + '»?')) return; savePls(pls().filter(x => x.id !== id)); showPlaylists(); }]]);
+}
+function addToPl(it){
+  if (!it || it.list) return;
+  const l = pls();
+  const ops = [['＋ Nueva playlist…', () => newPl(p => { const m = pls(); m.find(x => x.id === p.id).songs.push(plSong(it)); savePls(m); toast('✓ Agregada a «' + p.name + '»'); })]];
+  l.forEach(p => ops.push([(p.songs.some(x => x.u === it.u) ? '✓ ' : '🎶 ') + p.name + ' (' + p.songs.length + ')', () => {
+    const m = pls(), q = m.find(x => x.id === p.id);
+    if (q.songs.some(x => x.u === it.u)) { toast('Ya estaba en «' + q.name + '»'); return; }
+    q.songs.push(plSong(it)); savePls(m); toast('✓ Agregada a «' + q.name + '»');
+    if (curPl === q.id) openPlaylist(q.id);
+  }]));
+  sheet('➕ Agregar «' + it.t + '»', ops);
+}
+function movePl(u, d){
+  const m = pls(), p = m.find(x => x.id === curPl); if (!p) return;
+  const i = p.songs.findIndex(x => x.u === u), j = i + d;
+  if (i < 0 || j < 0 || j >= p.songs.length) return;
+  const [x] = p.songs.splice(i, 1); p.songs.splice(j, 0, x); savePls(m); const y = scrollY; openPlaylist(curPl); scrollTo(0, y);
+}
+function songMenu(i){
+  const {it} = rows[i] || {}; if (!it) return;
+  const ops = [['▶ Reproducir ahora', () => tap(i)], ['➕ Agregar a playlist', () => addToPl(it)]];
+  if (curPl) {
+    ops.push(['✖ Quitar de esta playlist', () => { const m = pls(), p = m.find(x => x.id === curPl); p.songs = p.songs.filter(x => x.u !== it.u); savePls(m); const y = scrollY; openPlaylist(curPl); scrollTo(0, y); }]);
+    if (i > 0) ops.push(['⬆ Subir', () => movePl(it.u, -1)]);
+    if (i < rows.length - 1) ops.push(['⬇ Bajar', () => movePl(it.u, 1)]);
+  }
+  if (it.c) ops.push(['👤 Ir al canal', () => channelOf(it.c, it.cu)]);
+  sheet(it.t, ops);
+}
+function toast(t){ const s = $('st'), old = 'Música cristiana y prédicas · sin anuncios'; s.textContent = t; s.style.color = 'var(--gold)'; clearTimeout(toast.t); toast.t = setTimeout(() => { s.textContent = old; s.style.color = ''; }, 2500); }
+$('faddpl').onclick = () => addToPl(queue[qi]);
 function setMode(m){
   mode = m;
   $('mMus').classList.toggle('on', m === 'musica'); $('mPred').classList.toggle('on', m === 'pred');
+  openDrop = -1; dropSel = {g: m === 'pred' ? 1 : 0, name: (m === 'pred' ? PCHIPS : CHIPS)[0][0]};
   drawChips(); $('q').value = '';
   search((m === 'pred' ? PCHIPS : CHIPS)[0][1]);
 }
 $('mMus').onclick = () => setMode('musica');
 $('mPred').onclick = () => setMode('pred');
+dropSel = {g: 0, name: CHIPS[0][0]};
 drawChips();
 if (!KEY) gate(); else search(CHIPS[0][1]);
 </script>
