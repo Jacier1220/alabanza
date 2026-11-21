@@ -450,7 +450,7 @@ $('fclose').onclick = closeFull;
 let ty = null;   // deslizar hacia abajo para bajarlo
 $('full').addEventListener('touchstart', e => { ty = $('full').scrollTop <= 0 ? e.touches[0].clientY : null; }, {passive: true});
 $('full').addEventListener('touchend', e => { if (ty !== null && e.changedTouches[0].clientY - ty > 110) closeFull(); ty = null; });
-$('fplay').onclick = () => au.paused ? au.play() : au.pause();
+$('fplay').onclick = () => au.paused ? au.play() : userPause();
 $('fnext').onclick = () => next(); $('fprev').onclick = () => prev();
 $('fshuf').onclick = () => { shuffle = !shuffle; played = new Set([qi]); upcomingFor = -1; preNext(); fullUpdate(); };
 $('frep').onclick = () => { repeat = (repeat + 1) % 3; fullUpdate(); };
@@ -498,7 +498,20 @@ function preNext(){
   api('/api/pre', {u: queue[n].u}).catch(()=>{});
 }
 au.addEventListener('play', () => { $('bplay').textContent = '⏸'; $('fplay').textContent = '⏸'; });
-au.addEventListener('pause', () => { $('bplay').textContent = '▶'; $('fplay').textContent = '▶'; });
+au.addEventListener('pause', () => { $('bplay').textContent = '▶'; $('fplay').textContent = '▶'; volverSola(); });
+// El iPhone pausa la música cuando llegan notificaciones (sonido, Siri, aviso de llamada). Si la pausa NO la
+// pidió la persona, se intenta seguir sola unas veces; y al volver a la página también.
+let quiero = false, reintentos = [];
+au.addEventListener('play', () => { quiero = true; });
+function userPause(){ quiero = false; reintentos.forEach(clearTimeout); reintentos = []; au.pause(); }
+function volverSola(){
+  if (!quiero || au.ended) return;
+  reintentos.forEach(clearTimeout);
+  reintentos = [800, 2500, 6000, 15000].map(ms => setTimeout(() => { if (quiero && au.paused && !au.ended) au.play().catch(()=>{}); }, ms));
+}
+['visibilitychange', 'focus', 'pageshow'].forEach(ev => (ev === 'visibilitychange' ? document : window).addEventListener(ev, () => {
+  if (document.visibilityState === 'visible' && quiero && au.paused && !au.ended) au.play().catch(()=>{});
+}));
 // duración verdadera: el iPhone a veces calcula el doble; se usa la que dice YouTube si no cuadra
 function realDur(){
   const it = queue[qi], d = isFinite(au.duration) ? au.duration : 0;
@@ -516,11 +529,11 @@ au.addEventListener('timeupdate', () => {
   if (it && isFinite(au.duration) && au.duration > d + 5 && au.currentTime >= d - 0.4 && endGuard !== it.u + qi) { endGuard = it.u + qi; ended(); }
 });
 $('prog').oninput = () => { const d = realDur(); if (d) au.currentTime = d * $('prog').value / 1000; };
-$('bplay').onclick = () => au.paused ? au.play() : au.pause();
+$('bplay').onclick = () => au.paused ? au.play() : userPause();
 $('bnext').onclick = next; $('bprev').onclick = prev;
 if ('mediaSession' in navigator) {
   navigator.mediaSession.setActionHandler('play', () => au.play());
-  navigator.mediaSession.setActionHandler('pause', () => au.pause());
+  navigator.mediaSession.setActionHandler('pause', () => userPause());
   navigator.mediaSession.setActionHandler('nexttrack', next);
   navigator.mediaSession.setActionHandler('previoustrack', prev);
   try { navigator.mediaSession.setActionHandler('seekto', d => { au.currentTime = d.seekTime; }); } catch(e) {}
