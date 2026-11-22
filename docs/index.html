@@ -31,7 +31,7 @@ button{font-family:inherit;cursor:pointer}
 .hello{padding:14px 16px 0}
 .hello h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-.3px}
 .marca{color:var(--green);font-size:13px;font-weight:700;margin-top:4px}
-.firma{display:flex;align-items:center;gap:8px;margin-top:-2px}
+.firma{display:flex;align-items:center;gap:8px;margin-top:-2px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .firma small{color:var(--dim);font-size:12px}
 .firma b{font-family:Firma,cursive;font-weight:normal;font-size:38px;line-height:1.15;color:#fff;padding:0 8px 0 2px}
 
@@ -168,6 +168,29 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 
 #toast{position:fixed;left:50%;bottom:calc(140px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:11;background:#fff;color:#000;font-weight:600;font-size:14px;padding:10px 16px;border-radius:8px;display:none;max-width:90vw;text-align:center;box-shadow:0 6px 20px #0008}
 
+/* modo propietario */
+#own{position:fixed;inset:0;z-index:8;background:#121212;overflow-y:auto;display:none;padding:env(safe-area-inset-top) 0 calc(40px + env(safe-area-inset-bottom))}
+#own.open{display:block}
+.oin{display:block;width:calc(100% - 40px);margin:0 20px;padding:14px;border-radius:8px;border:0;background:#2a2a2a;color:#fff;font-size:20px;text-align:center;outline:none;letter-spacing:.06em}
+.ores{margin:20px 20px 0;padding:18px 16px;border-radius:12px;background:linear-gradient(135deg,#1e5a3a,#242424);text-align:center}
+.ores small{color:var(--dim);font-size:14px}
+.ores b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:40px;color:var(--green);letter-spacing:.06em;margin:4px 0;user-select:all;-webkit-user-select:all}
+.ores .warn{color:#ff6e5a;font-size:13px;margin-top:6px}
+.note{color:var(--dim);font-size:13px;line-height:1.45;padding:18px 20px 0}
+.big{margin:14px 16px 0;padding:20px;border-radius:10px;background:linear-gradient(135deg,#1db954,#0d73ec)}
+.big b{display:block;font-size:46px;line-height:1.1}
+.prow{display:flex;align-items:center;gap:12px;padding:12px 18px;border:0;background:none;color:var(--cream);width:100%;text-align:left}
+.prow:active{background:#ffffff12}
+.prow .ic{flex:none;width:36px;text-align:center;font-size:24px}
+.prow b{display:block;font-size:16px;font-weight:600}
+.prow small{display:block;color:var(--dim);font-size:13px;white-space:pre-line}
+.prow.off .ic{opacity:.4}
+.prow.off small{color:#ff6e5a}
+#lock{position:fixed;inset:0;z-index:13;background:linear-gradient(#5a1e1e,#121212 45%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center}
+#lock .logo{width:84px;height:84px;border-radius:42px;background:#555;color:#000;font-size:40px;font-weight:800;display:flex;align-items:center;justify-content:center}
+#lock p{color:#ff9a8a;font-size:16px;line-height:1.5}
+#gate .nm{letter-spacing:0;font-size:17px;margin-bottom:10px}
+
 /* clave del servidor */
 #gate{position:fixed;inset:0;z-index:12;background:linear-gradient(#1e5a3a,#121212 45%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center}
 #gate .logo{width:84px;height:84px;border-radius:42px;background:var(--pink);color:#000;font-size:40px;font-weight:800;display:flex;align-items:center;justify-content:center}
@@ -229,8 +252,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
   <h1>Alabanza</h1>
   <div class="pr">Premium · app privada</div>
   <p>Escribe la clave del servidor de la casa<br>(sale en el teléfono servidor).</p>
+  <input id="gname" class="nm" autocomplete="name" placeholder="Tu nombre">
   <input id="key" autocomplete="off" autocapitalize="none" placeholder="Clave">
   <button class="btn green" id="keyok">Entrar</button>
+</div>
+
+<div id="own"></div>
+<div id="lock">
+  <div class="logo">✝</div>
+  <h1>Alabanza</h1>
+  <p>El propietario desactivó Alabanza en este iPhone.<br>Si crees que es un error, pídele que la vuelva a activar.</p>
+  <small style="color:var(--dim)" id="lockcod"></small>
 </div>
 
 <script>
@@ -723,8 +755,12 @@ if ('mediaSession' in navigator) {
 }
 
 // ------------------------------------------------------------ clave
-function gate(){ $('gate').style.display = 'flex'; $('key').value = KEY; }
-$('keyok').onclick = () => { KEY = $('key').value.trim(); store.set('clave', KEY); $('gate').style.display = 'none'; goTab('home'); };
+function gate(){ $('gate').style.display = 'flex'; $('key').value = KEY; $('gname').style.display = store.get('nombre', '') || esDueno() ? 'none' : 'block'; }
+$('keyok').onclick = () => {
+  KEY = $('key').value.trim(); store.set('clave', KEY);
+  const n = $('gname').value.trim(); if (n) { store.set('nombre', n); store.set('reportado', '0'); }
+  $('gate').style.display = 'none'; registrar(); revisar(); goTab('home');
+};
 
 // ------------------------------------------------------------ canales que sigues (se guardan en este iPhone)
 function follows(){ try { return JSON.parse(store.get('canales', '[]')); } catch(e) { return []; } }
@@ -923,10 +959,214 @@ document.addEventListener('click', e => {
   if (a === 'hist') { showHistory(); return; }
   if (a === 'paste') { pasteLink(); return; }
   if (a === 'newpl') { newPl(); return; }
-  if (a === 'about') { sheet('Alabanza', [['🔑', 'Cambiar la clave del servidor', gate], ['🔄', 'Buscar otra vez el servidor', () => { SRV = ''; store.set('srv', ''); findServer(true).then(() => toast('Servidor encontrado')).catch(e => toast(e.message)); }]], 'Versión web para iPhone · Creador Edgardo Ruiz'); return; }
+  if (a === 'about') {
+    if (!esDueno()) { sheet('Alabanza', [], 'Premium · Creador Edgardo Ruiz'); return; }
+    sheet('Alabanza · propietario', [['🔑', 'Activar un teléfono', activarPage], ['📱', 'Teléfonos con Alabanza', telefonosPage],
+      ['🔐', 'Cambiar la clave del servidor', gate],
+      ['🔄', 'Buscar otra vez el servidor', () => { SRV = ''; store.set('srv', ''); findServer(true).then(() => toast('Servidor encontrado')).catch(e => toast(e.message)); }],
+      ['🚪', 'Quitar el modo propietario de este iPhone', () => { if (confirm('¿Quitar el modo propietario de este iPhone? Para volverlo a poner necesitas la clave de propietario.')) { CLAVE = ''; store.set('dueno', ''); goTab(tab); } }]],
+      'Este iPhone es el del propietario', null);
+    return;
+  }
 });
 
-if (!KEY) gate();
+// ------------------------------------------------------------ propietario: activar y controlar los teléfonos (solo en su iPhone)
+const REG_T = 'alabanza-registro-k3v8p2n6zt', BLQ_T = 'alabanza-bloqueo-h5r9w2c7mq', ACT_T = 'alabanza-activar-q7m2x9kd4w';
+// huella de la clave del propietario (la clave NO está en la página: se escribe una vez en su iPhone)
+const DUENO_H = '1cc75b3424ca0cb7ef2ddeeae464f7faeaeef97ed2a30814b166bba7c8551f08';
+let CLAVE = store.get('dueno', '');
+const esDueno = () => !!CLAVE;
+async function sha(t){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+const fmt = h => (h.slice(0, 4) + '-' + h.slice(4, 8)).toUpperCase();
+const limpio = t => (t || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+// igual que en la app: SHA-256 de «CLAVE|CODIGO» → los 8 primeros
+async function activacion(tel){ return fmt(await sha(CLAVE + '|' + limpio(tel))); }
+function buscarCodigo(t){ const re = /\b([0-9A-F]{4})-?([0-9A-F]{4})\b/gi; let m, last = null; while ((m = re.exec(t || ''))) last = (m[1] + '-' + m[2]).toUpperCase(); return last; }
+async function hacerDueno(k){
+  k = (k || '').trim();
+  if (!k || await sha(k) !== DUENO_H) return false;
+  CLAVE = k; store.set('dueno', k); store.set('bloqueado', ''); $('lock').style.display = 'none';
+  await sincronizar(); goTab(tab); toast('Listo: este iPhone es el del propietario');
+  return true;
+}
+async function pedirClaveDueno(){
+  const k = prompt('Clave de propietario:', '');
+  if (k === null) return;
+  if (!await hacerDueno(k)) alert('Esa no es la clave de propietario.');
+}
+// escondido: mantener presionada la firma 2 segundos
+let firmaT = null;
+document.addEventListener('pointerdown', e => { if (e.target.closest('.firma')) { clearTimeout(firmaT); firmaT = setTimeout(pedirClaveDueno, 2000); } });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => document.addEventListener(ev, () => clearTimeout(firmaT)));
+document.addEventListener('contextmenu', e => { if (e.target.closest('.firma')) e.preventDefault(); });
+
+// cada iPhone tiene su código (como los teléfonos) y avisa que tiene Alabanza
+let DEV = store.get('dispositivo', '');
+if (!DEV) { const a = new Uint8Array(4); crypto.getRandomValues(a); DEV = fmt([...a].map(x => x.toString(16).padStart(2, '0')).join('')); store.set('dispositivo', DEV); }
+function ntfyPost(topic, body, headers){ return fetch('https://ntfy.sh/' + topic, {method: 'POST', body, headers: headers || {}}).catch(() => {}); }
+async function ntfyAll(topic){
+  const r = await fetch('https://ntfy.sh/' + topic + '/json?poll=1&since=all');
+  return (await r.text()).trim().split('\n').filter(Boolean).map(l => { try { return JSON.parse(l); } catch(e) { return null; } }).filter(o => o && o.event === 'message');
+}
+function registrar(){
+  if (!KEY) return;
+  const now = Date.now(); if (now - (+store.get('reportado', '0') || 0) < 6 * 3600000) return;
+  store.set('reportado', String(now));
+  const nombre = (store.get('nombre', '') || '').replace(/\|/g, ' ');
+  ntfyPost(REG_T, 'REG|' + DEV + '|' + nombre + '|iPhone (página web)|web|iphone');
+}
+// ¿el propietario desactivó este iPhone?
+async function revisar(){
+  if (esDueno()) return;
+  try {
+    let lista = null, t = 0;
+    for (const o of await ntfyAll(BLQ_T)) if (o.message.startsWith('LISTA|') && o.time >= t) { t = o.time; lista = o.message.slice(6); }
+    if (lista === null) return;   // no hay lista publicada ahora: se queda como estaba
+    store.set('bloqueado', lista.split(',').includes(DEV) ? '1' : '');
+  } catch(e) {}
+  mirarBloqueo();
+}
+function mirarBloqueo(){
+  const b = !esDueno() && store.get('bloqueado', '') === '1';
+  $('lock').style.display = b ? 'flex' : 'none';
+  $('lockcod').textContent = 'Código de este iPhone: ' + DEV;
+  if (b) { quiero = false; au.pause(); }
+}
+
+// lado del propietario: la lista de teléfonos se guarda en su iPhone
+function registro(){ try { return JSON.parse(store.get('registro', '{}')); } catch(e) { return {}; } }
+function setRegistro(o){ store.set('registro', JSON.stringify(o)); }
+function quitados(){ try { return JSON.parse(store.get('quitados', '{}')); } catch(e) { return {}; } }
+function bloqueados(){ try { return JSON.parse(store.get('bloq', '[]')); } catch(e) { return []; } }
+function guardar(o, cod, n, m, v, t, w){
+  if (w > 1 && w <= (quitados()[cod] || 0)) return;   // lo quitaste de la lista: avisos viejos no lo vuelven a poner
+  const j = o[cod] || {};
+  if (w >= (j.w || 0)) { if (n) j.n = n; if (m) j.m = m; if (v) j.v = v; if (t) j.t = t; j.w = w; }
+  else if (n && !j.n) j.n = n;
+  o[cod] = j;
+}
+const PRUEBAS = ['C993-6A5D', 'AB12-CD34'];   // los de las pruebas en la PC, no son de nadie
+async function sincronizar(){
+  try {
+    const o = registro();
+    for (const x of await ntfyAll(REG_T)) {
+      if (!x.message.startsWith('REG|')) continue;
+      const f = x.message.split('|'); if (f.length < 6 || PRUEBAS.includes(f[1])) continue;
+      guardar(o, f[1], f[2], f[3], f[4], f[5], x.time * 1000);
+    }
+    setRegistro(o);
+    // la primera vez se toma la lista de desactivados que ya estaba publicada (la del Redmi)
+    if (store.get('bloq', null) === null) {
+      let lista = null, t = 0;
+      for (const x of await ntfyAll(BLQ_T)) if (x.message.startsWith('LISTA|') && x.time >= t) { t = x.time; lista = x.message.slice(6); }
+      store.set('bloq', JSON.stringify(lista ? lista.split(',').filter(Boolean) : []));
+    }
+    return true;
+  } catch(e) { return false; }
+}
+function publicarLista(){ store.set('lista_pub', String(Date.now())); return ntfyPost(BLQ_T, 'LISTA|' + bloqueados().join(',')); }
+function setBloqueado(cod, on){ const s = new Set(bloqueados()); on ? s.add(cod) : s.delete(cod); store.set('bloq', JSON.stringify([...s])); publicarLista(); }
+// ntfy guarda la lista unas horas: el iPhone del propietario la vuelve a publicar al abrir la página
+function republicar(){ if (esDueno() && store.get('bloq', null) !== null && Date.now() - (+store.get('lista_pub', '0') || 0) > 3 * 3600000) publicarLista(); }
+function hace(w){
+  const m = Math.floor((Date.now() - w) / 60000);
+  if (m < 2) return 'ahora'; if (m < 60) return 'hace ' + m + ' min';
+  const h = Math.floor(m / 60); if (h < 24) return 'hace ' + h + (h === 1 ? ' hora' : ' horas');
+  const d = Math.floor(h / 24); return 'hace ' + d + (d === 1 ? ' día' : ' días');
+}
+function ownOpen(title, html){
+  $('own').innerHTML = `<div class="head" style="padding-top:14px"><button class="back" id="ownx">‹</button><div class="htitle">${esc(title)}</div></div>` + html;
+  $('ownx').onclick = () => $('own').classList.remove('open');
+  $('own').classList.add('open'); $('own').scrollTop = 0;
+}
+async function compartir(t){
+  try { if (navigator.share) { await navigator.share({text: t}); return; } } catch(e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(t); toast('Copiado: pégalo en WhatsApp'); } catch(e) { prompt('Copia este mensaje:', t); }
+}
+
+async function activarPage(){
+  ownOpen('Activar un teléfono', `<div class="note" style="padding:6px 20px 14px">Escribe el código que le sale a la persona en su teléfono. También puedes pegar el mensaje completo de WhatsApp.</div>
+    <input class="oin" id="acod" placeholder="Código del teléfono (XXXX-XXXX)" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    <div class="btns" style="padding:10px 20px 0"><button class="btn" id="apeg">📋 Pegar lo copiado</button></div>
+    <div class="ores"><small>Código de activación</small><b id="aout">—</b><small id="apara"></small><div class="warn" id="awarn"></div></div>
+    <div class="btns" style="padding:14px 20px 0" id="abtns"><button class="btn" id="acop" style="flex:1">Copiar</button><button class="btn green" id="aenv" style="flex:1.6">Enviar por WhatsApp</button></div>
+    <div class="sh">Pedidos de las últimas horas</div><div id="aped"><div class="note" style="padding-top:0">Buscando…</div></div>
+    <div class="note">Esto solo aparece en tu iPhone. Cada código sirve únicamente para el teléfono que lo pidió.</div>`);
+  const act = {cod: null, tel: null};
+  const calc = async () => {
+    const tel = buscarCodigo($('acod').value);
+    act.tel = tel; act.cod = tel ? await activacion(tel) : null;
+    $('aout').textContent = act.cod || '—';
+    $('apara').textContent = tel ? 'para el teléfono ' + tel : '';
+    $('awarn').textContent = tel && bloqueados().includes(tel) ? '⚠ Este teléfono está desactivado: primero vuelve a activarlo en «Teléfonos con Alabanza»' : '';
+    $('abtns').style.opacity = act.cod ? 1 : .4;
+  };
+  $('acod').oninput = calc; calc();
+  $('apeg').onclick = async () => { try { const t = await navigator.clipboard.readText(); if (t) { $('acod').value = t; calc(); return; } } catch(e) {} const t = prompt('Pega aquí el código o el mensaje:', ''); if (t) { $('acod').value = t; calc(); } };
+  const marcar = () => { const o = registro(); guardar(o, act.tel, '', '', '', '', 1); setRegistro(o); };
+  $('acop').onclick = async () => { if (!act.cod) return; marcar(); try { await navigator.clipboard.writeText(act.cod); toast('Copiado: ' + act.cod); } catch(e) { prompt('Copia el código:', act.cod); } };
+  $('aenv').onclick = () => { if (!act.cod) return; marcar(); compartir('Tu código de activación de Alabanza es: ' + act.cod + '\nEscríbelo en «Código de activación» y toca «Activar».'); };
+  // los que pidieron el código desde su teléfono (ntfy los guarda unas horas)
+  try {
+    const l = (await ntfyAll(ACT_T)).reverse().map(o => ({c: buscarCodigo(o.message), t: o.message.split('\n')[0], w: o.time * 1000})).filter(x => x.c);
+    const vistos = new Set(), u = l.filter(x => !vistos.has(x.c) && vistos.add(x.c));
+    $('aped').innerHTML = u.length ? u.map((x, i) => `<button class="prow" data-p="${i}"><span class="ic">🙋</span><span><b>${esc(x.c)}</b><small>${esc(x.t)} · ${hace(x.w)}</small></span></button>`).join('')
+      : '<div class="note" style="padding-top:0">No hay pedidos en las últimas horas.</div>';
+    $('aped').querySelectorAll('.prow').forEach(el => el.onclick = () => { $('acod').value = u[+el.dataset.p].c; calc(); $('own').scrollTop = 0; });
+  } catch(e) { $('aped').innerHTML = '<div class="note" style="padding-top:0">Sin internet.</div>'; }
+}
+
+async function telefonosPage(){
+  ownOpen('Teléfonos con Alabanza', '<div id="tlist"></div>');
+  let estado = 'Actualizando…';
+  const draw = () => {
+    const o = registro(), bl = bloqueados();
+    const l = Object.keys(o).map(k => Object.assign({cod: k}, o[k])).sort((a, b) => (b.w || 0) - (a.w || 0));
+    const act = l.filter(x => !bl.includes(x.cod)).length, off = l.length - act;
+    let h = `<div class="big"><div style="font-weight:700">Tienen tu app</div><b>${act}</b><div style="font-size:14px">${act === 1 ? 'activo' : 'activos'}${off ? ' · ' + off + ' desactivado' + (off === 1 ? '' : 's') : ''}</div></div>`
+      + `<div class="note" style="padding-top:8px">${esc(estado)}</div>`;
+    if (!l.length) h += '<div class="note">Todavía no ha llegado ninguno. Cada teléfono aparece cuando abre Alabanza (3.2 o más nueva) con internet; cada iPhone, cuando abre esta página.</div>';
+    for (const x of l) {
+      const yo = x.cod === DEV, isOff = bl.includes(x.cod);
+      const nombre = yo ? 'Tu iPhone' : (x.apodo || x.n || x.m || 'Teléfono ' + x.cod);
+      const visto = (x.w || 0) <= 1 ? 'le diste el código' : (x.t === 'iphone' ? 'abrió la página ' : 'abrió la app ') + hace(x.w);
+      const sub = x.cod + ((x.apodo || x.n) && x.m ? ' · ' + x.m : '') + (x.v && x.v !== 'web' ? ' · v' + x.v : '') + '\n' + (isOff ? '⛔ DESACTIVADO' : visto);
+      const ic = x.t === 'tv' ? '📺' : x.t === 'iphone' ? '📱' : '🤖';
+      h += `<button class="prow${isOff ? ' off' : ''}" data-c="${esc(x.cod)}"><span class="ic">${ic}</span><span style="flex:1;min-width:0"><b>${esc(nombre)}</b><small>${esc(sub)}</small></span>${yo ? '' : '<span style="color:var(--dim);font-size:20px">⋮</span>'}</button>`;
+    }
+    $('tlist').innerHTML = h;
+    $('tlist').querySelectorAll('.prow').forEach(el => el.onclick = () => { if (el.dataset.c !== DEV) telMenu(el.dataset.c, draw); });
+  };
+  draw();
+  const ok = await sincronizar();
+  estado = ok ? 'Al día · cada teléfono avisa cuando abre la app' : 'Sin internet: es la lista guardada';
+  draw();
+}
+async function telMenu(cod, draw){
+  const o = registro(), x = o[cod] || {}, off = bloqueados().includes(cod);
+  const nm = x.apodo || x.n || x.m || 'Teléfono ' + cod;
+  const ops = [];
+  if (off) ops.push(['✓', 'Volver a activar', () => { setBloqueado(cod, false); draw(); toast(nm + ' se vuelve a activar'); }]);
+  else ops.push(['⛔', 'Desactivar Alabanza aquí', () => {
+    if (!confirm('¿Desactivar a ' + nm + '?\n\nAlabanza dejará de funcionar ahí la próxima vez que la abra con internet. Después puedes volver a activarla aquí mismo.')) return;
+    setBloqueado(cod, true); draw();
+  }]);
+  ops.push(['✏', 'Ponerle nombre', () => { const v = prompt('Nombre para este teléfono (ej. Damaris, TV de la sala):', x.apodo || x.n || ''); if (v === null) return; const r = registro(); (r[cod] = r[cod] || {w: 1}).apodo = v.trim(); setRegistro(r); draw(); }]);
+  if (!off) ops.push(['🗑', 'Quitar de la lista', () => { const r = registro(); delete r[cod]; setRegistro(r); const q = quitados(); q[cod] = Date.now(); store.set('quitados', JSON.stringify(q)); draw(); }]);
+  if (x.t !== 'iphone') ops.push(['🔑', 'Ver su código de activación', async () => alert(nm + '\n\nCódigo de activación: ' + await activacion(cod))]);
+  sheet(nm, ops, cod + (x.m ? ' · ' + x.m : ''), null);
+}
+
+// llegó con el enlace del propietario (…/#dueno=CLAVE): se guarda y se borra del enlace
+(async () => {
+  const m = /[#&]dueno=([^&]+)/.exec(location.hash);
+  if (m) { history.replaceState(null, '', location.pathname + location.search); if (!await hacerDueno(decodeURIComponent(m[1]))) toast('Esa no es la clave de propietario'); }
+  else if (CLAVE && await sha(CLAVE) !== DUENO_H) { CLAVE = ''; store.set('dueno', ''); }
+  if (esDueno()) { sincronizar().then(republicar); }
+})();
+
+mirarBloqueo();
+if (!KEY) gate(); else { registrar(); revisar(); }
 goTab('home');
 </script>
 </body>
