@@ -756,7 +756,8 @@ if ('mediaSession' in navigator) {
 
 // ------------------------------------------------------------ clave
 function gate(){ $('gate').style.display = 'flex'; $('key').value = KEY; $('gname').style.display = store.get('nombre', '') || esDueno() ? 'none' : 'block'; }
-$('keyok').onclick = () => {
+$('keyok').onclick = async () => {
+  if (await esClaveDueno($('key').value)) { await hacerDueno($('key').value); $('key').value = KEY; if (!KEY) { alert('Listo, eres el propietario. Ahora escribe la clave del servidor.'); return; } $('gate').style.display = 'none'; return; }
   KEY = $('key').value.trim(); store.set('clave', KEY);
   const n = $('gname').value.trim(); if (n) { store.set('nombre', n); store.set('reportado', '0'); }
   $('gate').style.display = 'none'; registrar(); revisar(); goTab('home');
@@ -802,9 +803,9 @@ async function pasteLink(){
   if (!isUrl(v)) v = prompt('Pega aquí el enlace de YouTube (video, lista o canal):', v) || '';
   if (v.trim()) openUrl(v);
 }
-$('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { isUrl(v) ? openUrl(v) : search(v); $('q').blur(); } } });
+$('q').addEventListener('keydown', async e => { if (e.key === 'Enter') { const v = $('q').value.trim(); if (v) { $('q').blur(); if (await esClaveDueno(v)) { $('q').value = ''; hacerDueno(v); return; } isUrl(v) ? openUrl(v) : search(v); } } });
 $('q').addEventListener('input', () => { $('qx').style.display = $('q').value ? 'block' : 'none'; });
-$('q').addEventListener('paste', () => setTimeout(() => { const v = $('q').value.trim(); if (isUrl(v)) { openUrl(v); $('q').blur(); } }, 50));
+$('q').addEventListener('paste', () => setTimeout(async () => { const v = $('q').value.trim(); if (await esClaveDueno(v)) { $('q').value = ''; $('q').blur(); hacerDueno(v); return; } if (isUrl(v)) { openUrl(v); $('q').blur(); } }, 50));
 $('qx').onclick = () => { $('q').value = ''; goTab('buscar'); };
 
 // ------------------------------------------------------------ hoja de opciones (como el menú de mantener presionado)
@@ -960,7 +961,7 @@ document.addEventListener('click', e => {
   if (a === 'paste') { pasteLink(); return; }
   if (a === 'newpl') { newPl(); return; }
   if (a === 'about') {
-    if (!esDueno()) { sheet('Alabanza', [], 'Premium · Creador Edgardo Ruiz'); return; }
+    if (!esDueno()) { sheet('Alabanza', [], 'Premium · Creador Edgardo Ruiz · web 3.4'); return; }
     sheet('Alabanza · propietario', [['🔑', 'Activar un teléfono', activarPage], ['📱', 'Teléfonos con Alabanza', telefonosPage],
       ['🔐', 'Cambiar la clave del servidor', gate],
       ['🔄', 'Buscar otra vez el servidor', () => { SRV = ''; store.set('srv', ''); findServer(true).then(() => toast('Servidor encontrado')).catch(e => toast(e.message)); }],
@@ -989,16 +990,30 @@ async function hacerDueno(k){
   await sincronizar(); goTab(tab); toast('Listo: este iPhone es el del propietario');
   return true;
 }
-async function pedirClaveDueno(){
-  const k = prompt('Clave de propietario:', '');
-  if (k === null) return;
-  if (!await hacerDueno(k)) alert('Esa no es la clave de propietario.');
+function pedirClaveDueno(){
+  $('sbox').innerHTML = `<div class="grip"></div><div class="qh"><h3>Clave de propietario</h3><small>Pégala aquí y toca «Entrar»</small></div>
+    <input class="oin" id="dkey" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" style="font-size:17px;letter-spacing:0">
+    <div class="btns" style="padding:14px 20px 6px"><button class="btn" id="dpeg" style="flex:1">📋 Pegar</button><button class="btn green" id="dok" style="flex:1.4">Entrar</button></div>
+    <div class="note" id="derr" style="color:#ff6e5a;padding-top:4px"></div>`;
+  $('sheet').classList.add('open');
+  setTimeout(() => $('dkey').focus(), 200);
+  $('dpeg').onclick = async () => { try { $('dkey').value = (await navigator.clipboard.readText()).trim(); } catch(e) { $('dkey').focus(); } };
+  $('dok').onclick = async () => { if (await hacerDueno($('dkey').value)) closeSheet(); else $('derr').textContent = 'Esa no es la clave de propietario.'; };
 }
 // escondido: mantener presionada la firma 2 segundos
 let firmaT = null;
 document.addEventListener('pointerdown', e => { if (e.target.closest('.firma')) { clearTimeout(firmaT); firmaT = setTimeout(pedirClaveDueno, 2000); } });
 ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => document.addEventListener(ev, () => clearTimeout(firmaT)));
 document.addEventListener('contextmenu', e => { if (e.target.closest('.firma')) e.preventDefault(); });
+document.addEventListener('touchstart', e => { if (e.target.closest('.firma')) { clearTimeout(firmaT); firmaT = setTimeout(pedirClaveDueno, 2000); } }, {passive: true});
+['touchend', 'touchcancel'].forEach(ev => document.addEventListener(ev, () => clearTimeout(firmaT)));
+let toques = [];
+document.addEventListener('click', e => {
+  if (!e.target.closest('.av')) return;
+  const now = Date.now(); toques = toques.filter(t => now - t < 2500); toques.push(now);
+  if (toques.length >= 5 && !esDueno()) { toques = []; e.stopPropagation(); pedirClaveDueno(); }
+}, true);
+async function esClaveDueno(v){ v = (v || '').trim(); return v.length >= 20 && !/\s/.test(v) && await sha(v) === DUENO_H; }
 
 // cada iPhone tiene su código (como los teléfonos) y avisa que tiene Alabanza
 let DEV = store.get('dispositivo', '');
