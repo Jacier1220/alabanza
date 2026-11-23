@@ -973,6 +973,8 @@ document.addEventListener('click', e => {
 
 // ------------------------------------------------------------ propietario: activar y controlar los teléfonos (solo en su iPhone)
 const REG_T = 'alabanza-registro-k3v8p2n6zt', BLQ_T = 'alabanza-bloqueo-h5r9w2c7mq', ACT_T = 'alabanza-activar-q7m2x9kd4w';
+// «Activar ese teléfono»: el teléfono (Alabanza y Onda) lo lee y se activa solo; comprueba el código con la clave
+const LISTO_T = 'alabanza-listo-r4t8w1m6zq';
 // huella de la clave del propietario (la clave NO está en la página: se escribe una vez en su iPhone)
 const DUENO_H = '1cc75b3424ca0cb7ef2ddeeae464f7faeaeef97ed2a30814b166bba7c8551f08';
 let CLAVE = store.get('dueno', '');
@@ -1100,11 +1102,14 @@ async function compartir(t){
 }
 
 async function activarPage(){
-  ownOpen('Activar un teléfono', `<div class="note" style="padding:6px 20px 14px">Escribe el código que le sale a la persona en su teléfono. También puedes pegar el mensaje completo de WhatsApp.</div>
+  ownOpen('Activar un teléfono', `<div class="note" style="padding:6px 20px 14px">Escribe el código que le sale a la persona en su teléfono (o pega su mensaje de WhatsApp) y toca «Activar ese teléfono». Su app abre sola en unos segundos.</div>
     <input class="oin" id="acod" placeholder="Código del teléfono (XXXX-XXXX)" autocomplete="off" autocapitalize="characters" spellcheck="false">
     <div class="btns" style="padding:10px 20px 0"><button class="btn" id="apeg">📋 Pegar lo copiado</button></div>
     <div class="ores"><small>Código de activación</small><b id="aout">—</b><small id="apara"></small><div class="warn" id="awarn"></div></div>
-    <div class="btns" style="padding:14px 20px 0" id="abtns"><button class="btn" id="acop" style="flex:1">Copiar</button><button class="btn green" id="aenv" style="flex:1.6">Enviar por WhatsApp</button></div>
+    <div class="btns" style="padding:14px 20px 0" id="abtns2"><button class="btn green" id="aya" style="flex:1">✅ Activar ese teléfono</button></div>
+    <div class="note" id="aok" style="color:#4F9BFF;padding-top:8px"></div>
+    <div class="note" style="padding-top:14px">Si su teléfono no tiene internet en ese momento, mándale el código:</div>
+    <div class="btns" style="padding:6px 20px 0" id="abtns"><button class="btn" id="acop" style="flex:1">Copiar</button><button class="btn" id="aenv" style="flex:1.6">Enviar por WhatsApp</button></div>
     <div class="sh">Pedidos de las últimas horas</div><div id="aped"><div class="note" style="padding-top:0">Buscando…</div></div>
     <div class="note">Esto solo aparece en tu iPhone. Cada código sirve únicamente para el teléfono que lo pidió.</div>`);
   const act = {cod: null, tel: null};
@@ -1115,10 +1120,20 @@ async function activarPage(){
     $('apara').textContent = tel ? 'para el teléfono ' + tel : '';
     $('awarn').textContent = tel && bloqueados().includes(tel) ? '⚠ Este teléfono está desactivado: primero vuelve a activarlo en «Teléfonos con Alabanza»' : '';
     $('abtns').style.opacity = act.cod ? 1 : .4;
+    $('abtns2').style.opacity = act.cod ? 1 : .4;
+    $('aok').textContent = '';
   };
   $('acod').oninput = calc; calc();
   $('apeg').onclick = async () => { try { const t = await navigator.clipboard.readText(); if (t) { $('acod').value = t; calc(); return; } } catch(e) {} const t = prompt('Pega aquí el código o el mensaje:', ''); if (t) { $('acod').value = t; calc(); } };
   const marcar = () => { const o = registro(); guardar(o, act.tel, '', '', '', '', 1); setRegistro(o); };
+  $('aya').onclick = async () => {
+    if (!act.cod) return;
+    if (bloqueados().includes(act.tel)) { toast('Ese teléfono está desactivado'); return; }
+    marcar();
+    await ntfyPost(LISTO_T, 'OK|' + act.tel + '|' + act.cod);
+    $('aok').textContent = '✓ Activado. En su teléfono la app abre sola (tiene que tener la pantalla de activar abierta o abrir la app).';
+    toast('Listo: ' + act.tel + ' activado');
+  };
   $('acop').onclick = async () => { if (!act.cod) return; marcar(); try { await navigator.clipboard.writeText(act.cod); toast('Copiado: ' + act.cod); } catch(e) { prompt('Copia el código:', act.cod); } };
   $('aenv').onclick = () => { if (!act.cod) return; marcar(); compartir('Tu código de activación de Alabanza es: ' + act.cod + '\nEscríbelo en «Código de activación» y toca «Activar».'); };
   // los que pidieron el código desde su teléfono (ntfy los guarda unas horas)
