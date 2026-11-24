@@ -6,37 +6,37 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Alabanza">
+<meta name="apple-mobile-web-app-title" content="Hosanna Music">
 <meta name="theme-color" content="#121212">
 <link rel="apple-touch-icon" href="icono.png">
 <link rel="manifest" href="manifest.json">
-<title>Alabanza</title>
+<title>Hosanna Music</title>
 <style>
 @font-face{font-family:Firma;src:url(firma.ttf) format('truetype');font-display:swap}
-:root{--bg:#121212;--card:#242424;--card2:#2a2a2a;--green:#1ed760;--cream:#fff;--dim:#b3b3b3;--gold:#ffc864;--pink:#f573a0;--line:#ffffff1a}
+:root{--cyan:#25d1da;--mezcla:linear-gradient(90deg,#1ed760,#25d1da);--top:#1e5a3a;--bg:#0a0b0b;--card:#242424;--card2:#2a2a2a;--green:#1ed760;--cream:#fff;--dim:#b3b3b3;--gold:#ffc864;--pink:#f573a0;--line:#ffffff1a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
-body{margin:0;background:linear-gradient(#1e5a3a,#121212 330px) no-repeat,var(--bg);color:var(--cream);font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
+body{margin:0;background:linear-gradient(var(--top),#0d0f0f 300px,#0a0b0b 520px) no-repeat,var(--bg);color:var(--cream);font-family:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif}
 body{padding:env(safe-area-inset-top) 0 calc(150px + env(safe-area-inset-bottom));overflow-x:hidden}
 button{font-family:inherit;cursor:pointer}
 
 
 /* arriba: avatar y Música / Prédicas */
 .topb{display:flex;align-items:center;gap:8px;padding:14px 16px 4px}
-.av{flex:none;width:34px;height:34px;border-radius:17px;border:0;background:var(--pink);color:#000;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center}
-.pill{flex:none;padding:7px 15px;border-radius:17px;border:0;background:#ffffff1f;color:var(--cream);font-size:14px;font-weight:600}
-.pill.on{background:var(--green);color:#000}
+.av{flex:none;width:34px;height:34px;border-radius:17px;border:0;background:linear-gradient(135deg,#1ed760,#25d1da);color:#000;font-weight:800;font-size:17px;display:flex;align-items:center;justify-content:center}
+.pill{flex:none;padding:7px 15px;border-radius:17px;border:0;background:#262727;color:var(--cream);font-size:14px;font-weight:600}
+.pill.on{background:var(--mezcla);color:#000}
 
 /* saludo y firma */
 .hello{padding:14px 16px 0}
 .hello h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-.3px}
-.marca{color:var(--green);font-size:13px;font-weight:700;margin-top:4px}
+.marca{color:var(--cyan);font-size:13px;font-weight:700;margin-top:4px}
 .firma{display:flex;align-items:center;gap:8px;margin-top:-2px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .firma small{color:var(--dim);font-size:12px}
 .firma b{font-family:Firma,cursive;font-weight:normal;font-size:38px;line-height:1.15;color:#fff;padding:0 8px 0 2px}
 
 /* versículo del día */
-.verse{margin:14px 16px 4px;padding:15px 18px 16px;border-radius:12px;background:linear-gradient(135deg,#3a2a6e,#1e3a5f 55%,#14532d)}
+.verse{margin:14px 16px 4px;padding:15px 18px 16px;border-radius:12px;background:#ffffff1c}
 .verse .vt{color:#c8f5d8;font-size:12px;font-weight:800;letter-spacing:.14em}
 .verse p{margin:10px 0 8px;font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:19px;line-height:1.35}
 .verse .vr{font-size:14px;font-weight:700;color:#e6e6e6}
@@ -44,7 +44,7 @@ button{font-family:inherit;cursor:pointer}
 /* cuadritos de colores (accesos rápidos) */
 .quick{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px 4px}
 .qt{display:flex;align-items:center;height:56px;border-radius:6px;overflow:hidden;border:0;padding:0;color:#fff;text-align:left;font-size:14px;font-weight:700}
-.qt i{flex:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:24px;background:#0003}
+.qt i{flex:none;width:56px;height:56px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:24px;background:#0002}
 .qt span{padding:0 10px;line-height:1.2}
 
 /* secciones */
@@ -69,7 +69,7 @@ button{font-family:inherit;cursor:pointer}
 /* buscar */
 #sbar{display:none;padding:16px 16px 4px}
 #sbar h2{margin:0 0 12px;font-size:26px;font-weight:800}
-.sbox{display:flex;align-items:center;background:#fff;border-radius:8px;padding:0 6px 0 12px}
+.sbox{display:flex;align-items:center;background:#fff;border-radius:24px;padding:0 6px 0 12px}
 .sbox svg{flex:none}
 #q{flex:1;min-width:0;border:0;outline:none;background:transparent;color:#121212;font-size:16px;padding:13px 8px;font-weight:600}
 #q::placeholder{color:#555;font-weight:500}
@@ -82,7 +82,7 @@ button{font-family:inherit;cursor:pointer}
 .htitle{font-size:22px;font-weight:800;line-height:1.2}
 .btns{display:flex;gap:10px;align-items:center;padding:10px 16px}
 .btn{padding:10px 18px;border-radius:22px;border:1px solid #ffffff55;background:transparent;color:var(--cream);font-weight:700;font-size:14px}
-.btn.green{background:var(--green);color:#000;border:0}
+.btn.green{background:var(--mezcla);color:#000;border:0}
 .btn.round{width:52px;height:52px;padding:0;border-radius:26px;font-size:20px}
 .sh{color:#fff;font-size:18px;font-weight:800;padding:20px 16px 6px}
 .row{display:flex;align-items:center;gap:12px;padding:7px 16px}
@@ -106,9 +106,10 @@ button{font-family:inherit;cursor:pointer}
 .lrow small{color:var(--dim);font-size:13px}
 
 /* barra de abajo y mini reproductor */
-#nav{position:fixed;left:0;right:0;bottom:0;z-index:4;display:flex;padding:22px 0 calc(6px + env(safe-area-inset-bottom));background:linear-gradient(#12121200,#121212e6 38%,#000)}
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:4;display:flex;padding:22px 0 calc(6px + env(safe-area-inset-bottom));background:linear-gradient(#00000000,#000000e6 38%,#000)}
 .nb{flex:1;border:0;background:none;color:var(--dim);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
-.nb.on{color:#fff}
+.nb.on{color:var(--cyan)}
+.nb.on svg{color:#fff}
 .nb svg{width:25px;height:25px}
 #mini{position:fixed;left:8px;right:8px;bottom:calc(64px + env(safe-area-inset-bottom));z-index:5;display:none;border-radius:8px;background:#3a3a3a;overflow:hidden;box-shadow:0 6px 20px #0008}
 #mini .pl{display:flex;align-items:center;gap:10px;padding:7px 8px}
@@ -192,8 +193,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 #gate .nm{letter-spacing:0;font-size:17px;margin-bottom:10px}
 
 /* clave del servidor */
-#gate{position:fixed;inset:0;z-index:12;background:linear-gradient(#1e5a3a,#121212 45%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center}
-#gate .logo{width:84px;height:84px;border-radius:42px;background:var(--pink);color:#000;font-size:40px;font-weight:800;display:flex;align-items:center;justify-content:center}
+#gate{position:fixed;inset:0;z-index:12;background:linear-gradient(var(--top),#0a0b0b 45%);display:none;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center}
+#gate .logo{width:84px;height:84px;border-radius:42px;background:linear-gradient(135deg,#1ed760,#25d1da);color:#000;font-size:40px;font-weight:800;display:flex;align-items:center;justify-content:center}
 #gate h1{margin:14px 0 0;font-size:30px}
 #gate .pr{color:var(--gold);font-weight:700;font-size:15px}
 #gate p{color:var(--dim);font-size:15px;line-height:1.45;margin:14px 0 18px}
@@ -225,13 +226,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 </div>
 <nav id="nav">
   <button class="nb on" data-tab="home"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l9 7.5V21h-6.5v-6.5h-5V21H3V10.5z"/></svg>Inicio</button>
-  <button class="nb" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Buscar</button>
-  <button class="nb" data-tab="lib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18M10 3v18M15 4l5 16"/></svg>Tu biblioteca</button>
+  <button class="nb" data-tab="buscar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg>Encontrar</button>
+  <button class="nb" data-tab="lib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 3v18M10 3v18M15 4l5 16"/></svg>Biblioteca</button>
 </nav>
 
 <div id="full">
   <div id="fbg"></div>
-  <div class="fhead"><button class="fi" id="fclose"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button><button class="fq" id="fq"><small>REPRODUCIENDO DESDE</small><b id="fqn">Alabanza</b></button><button class="fi" id="fmenu">⋮</button></div>
+  <div class="fhead"><button class="fi" id="fclose"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></button><button class="fq" id="fq"><small>REPRODUCIENDO DESDE</small><b id="fqn">Hosanna Music</b></button><button class="fi" id="fmenu">⋮</button></div>
   <div id="fcov"></div>
   <div class="frow"><div class="tx"><div class="ft" id="ft"></div><button id="fc"></button></div><button id="faddpl" title="Agregar a playlist">＋</button></div>
   <input id="fprog" type="range" min="0" max="1000" value="0">
@@ -249,7 +250,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 
 <div id="gate">
   <div class="logo">✝</div>
-  <h1>Alabanza</h1>
+  <h1>Hosanna Music</h1>
   <div class="pr">Premium · app privada</div>
   <p>Escribe la clave del servidor de la casa<br>(sale en el teléfono servidor).</p>
   <input id="gname" class="nm" autocomplete="name" placeholder="Tu nombre">
@@ -260,8 +261,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 <div id="own"></div>
 <div id="lock">
   <div class="logo">✝</div>
-  <h1>Alabanza</h1>
-  <p>El propietario desactivó Alabanza en este iPhone.<br>Si crees que es un error, pídele que la vuelva a activar.</p>
+  <h1>Hosanna Music</h1>
+  <p>El propietario desactivó Hosanna Music en este iPhone.<br>Si crees que es un error, pídele que la vuelva a activar.</p>
   <small style="color:var(--dim)" id="lockcod"></small>
 </div>
 
@@ -292,6 +293,24 @@ let KEY = store.get('clave', ''), SRV = store.get('srv', '');
 let queue = [], qi = -1, qname = '', shuffle = false, stack = [];
 let here = null, origin = null;   // dónde está uno ahora / de dónde viene lo que suena (para «Ir a la lista»)
 
+// carátula grande y nítida, como en la app (hq720 sin el «sqp» que la achica; fotos de canal a 800)
+function nitida(th){
+  if (!th) return th;
+  const base = th.split('?')[0], m = base.match(/ytimg\.com\/vi(?:_webp)?\/([\w-]{11})\//);
+  if (m) return /maxresdefault\.jpg$/.test(base) ? base : 'https://i.ytimg.com/vi/' + m[1] + '/hq720.jpg';
+  if (/googleusercontent\.com|ggpht\.com/.test(th)) return th.replace(/=w\d+-h\d+[^/?]*$/, '=w800-h800-l90-rj').replace(/=s\d+[^/?]*$/, '=s800');
+  return th;
+}
+function bgi(th){
+  if (!th) return 'none';
+  const hd = nitida(th);
+  return hd && hd !== th ? `url('${esc(hd)}'),url('${esc(th)}')` : `url('${esc(th)}')`;
+}
+(function(){
+  const tops = ["#132c4c", "#134c3e", "#2b134c", "#4c132b", "#13474c", "#4c2d13", "#134c24"], d0 = new Date(), ini = new Date(d0.getFullYear(), 0, 0);
+  const dia = Math.floor((d0 - ini) / 86400000);
+  document.documentElement.style.setProperty('--top', tops[dia % tops.length]);
+})();
 function esc(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function time(s){ s = Math.floor(s||0); if (s<=0) return ''; const h=Math.floor(s/3600), m=Math.floor(s/60)%60, x=String(s%60).padStart(2,'0'); return h ? h+':'+String(m).padStart(2,'0')+':'+x : m+':'+x; }
 function msg(t){ $('msg').innerHTML = t ? esc(t).replace(/\n/g,'<br>') : ''; }
@@ -327,7 +346,7 @@ function rowHtml(it, i){
     : kind === 'mypl' ? 'Playlist' : list ? 'Lista' : 'Canción';
   const badge = list ? (it.n ? it.n + ' ♪' : '') : time(it.s);
   const now = !list && queue[qi] && queue[qi].u === it.u ? ' now' : '';
-  return `<div class="row${now}" data-i="${i}"><div class="th ${cls}" style="background-image:url('${esc(it.th)}')">${badge ? `<span class="badge">${badge}</span>` : ''}</div>
+  return `<div class="row${now}" data-i="${i}"><div class="th ${cls}" style="background-image:${bgi(it.th)}">${badge ? `<span class="badge">${badge}</span>` : ''}</div>
     <div class="tx"><div class="t1">${now ? '<span style="color:var(--green)">♫ </span>' : ''}${esc(it.t)}</div><div class="t2">${label}${it.c ? ' · ' + esc(it.c) : ''}</div></div>${list ? '' : `<button class="mn" data-m="${i}">⋮</button>`}</div>`;
 }
 
@@ -520,14 +539,14 @@ async function start(i){
   const it = queue[i];
   $('mini').style.display = 'block';
   $('nt').textContent = it.t; $('nc').textContent = it.c || '';
-  $('cov').style.backgroundImage = `url('${it.th}')`;
+  $('cov').style.backgroundImage = bgi(it.th);
   try {
     const base = await findServer(false);
     au.src = srcFor(base, it);
     await au.play();
   } catch (e) { /* iOS a veces pide tocar ▶ la primera vez */ }
   if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({title: it.t, artist: it.c || '', album: qname || 'Alabanza', artwork: [{src: it.th, sizes: '480x360', type: 'image/jpeg'}]});
+    navigator.mediaSession.metadata = new MediaMetadata({title: it.t, artist: it.c || '', album: qname || 'Hosanna Music', artwork: [{src: it.th, sizes: '480x360', type: 'image/jpeg'}]});
   }
   document.querySelectorAll('#view .row').forEach(el => {
     const r = rows[+el.dataset.i]; if (!r || r.it.list) return;
@@ -578,9 +597,9 @@ function fullUpdate(){
   const it = queue[qi]; if (!it) return;
   $('ft').textContent = it.t;
   $('fc').textContent = it.c || '';
-  $('fqn').textContent = qname || 'Alabanza';
-  $('fcov').style.backgroundImage = `url('${hq(it.th)}')`;
-  $('fbg').style.backgroundImage = `url('${it.th}')`;
+  $('fqn').textContent = qname || 'Hosanna Music';
+  $('fcov').style.backgroundImage = bgi(it.th);
+  $('fbg').style.backgroundImage = bgi(it.th);
   $('fshuf').classList.toggle('on', shuffle);
   $('frep').classList.toggle('on', repeat > 0); $('frep').innerHTML = IC.rep + (repeat === 2 ? '<sup style="font-size:11px;font-weight:800">1</sup>' : '');
   syncPlay();
@@ -615,7 +634,7 @@ function filaSheet(){
   if (!queue.length) { toast('No hay nada sonando'); return; }
   const ir = irTexto(), order = upNext();
   const row = (k, now) => { const s = queue[k];
-    return `<div class="row${now ? ' now' : ''}" data-q="${k}"><div class="th" style="background-image:url('${esc(s.th)}')"></div><div class="tx"><div class="t1" style="-webkit-line-clamp:1">${esc(s.t)}</div><div class="t2">${esc(s.c || '')}</div></div>${now ? '<span style="color:var(--green);font-size:18px">♫</span>' : ''}</div>`; };
+    return `<div class="row${now ? ' now' : ''}" data-q="${k}"><div class="th" style="background-image:${bgi(s.th)}"></div><div class="tx"><div class="t1" style="-webkit-line-clamp:1">${esc(s.t)}</div><div class="t2">${esc(s.c || '')}</div></div>${now ? '<span style="color:var(--green);font-size:18px">♫</span>' : ''}</div>`; };
   $('sbox').innerHTML = `<div class="grip"></div><div class="qh"><h3>Fila de reproducción</h3><small>Reproduciendo&nbsp; ${esc(qname || 'tu música')}</small>${ir ? `<button id="qgo">${esc(ir)} ›</button>` : ''}</div>`
     + `<div class="sh" style="font-size:15px;padding-top:8px">Sonando ahora</div>` + row(qi, true)
     + (order.length ? `<div class="sh" style="font-size:15px">A continuación</div>` + order.map(k => row(k, false)).join('')
@@ -810,7 +829,7 @@ $('qx').onclick = () => { $('q').value = ''; goTab('buscar'); };
 
 // ------------------------------------------------------------ hoja de opciones (como el menú de mantener presionado)
 function sheet(title, ops, sub, th){
-  $('sbox').innerHTML = `<div class="grip"></div><div class="shd">${th ? `<div class="th" style="background-image:url('${esc(th)}')"></div>` : ''}<div class="tx"><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`
+  $('sbox').innerHTML = `<div class="grip"></div><div class="shd">${th ? `<div class="th" style="background-image:${bgi(th)}"></div>` : ''}<div class="tx"><b>${esc(title)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</div></div>`
     + ops.map((o, i) => `<button class="op" data-o="${i}"><i>${o[0]}</i>${esc(o[1])}</button>`).join('');
   $('sbox').querySelectorAll('.op').forEach(el => el.onclick = () => { closeSheet(); ops[+el.dataset.o][2](); });
   $('sheet').classList.add('open');
@@ -901,16 +920,16 @@ function homeHtml(){
   const tiles = [['🎶', 'Mis playlists', 'pls', '#8400e7'], ['⭐', 'Mis canales', 'follow', '#0d73ec'], ['🕘', 'Historial', 'hist', '#ff6437'], ['🔗', 'Pegar enlace', 'paste', '#148a08'],
     [cats[0][2], cats[0][0], 'cat:0', '#e91e63'], [cats[1][2], cats[1][0], 'cat:1', '#f59b00']];
   let h = modePills()
-    + `<div class="hello"><h1>${saludo()}</h1><div class="marca">✝ Alabanza · ${pred ? 'prédicas cristianas' : 'música cristiana'}</div>`
+    + `<div class="hello"><h1>${saludo()}</h1><div class="marca">✝ Hosanna Music · ${pred ? 'prédicas cristianas' : 'música cristiana'}</div>`
     + `<div class="firma"><small>Creador</small><b>Edgardo Ruiz</b></div></div>`
     + `<div class="verse"><div class="vt">✝ VERSÍCULO DEL DÍA</div><p>«${esc(v[1])}»</p><div class="vr">— ${esc(v[0])} (RV1960)</div></div>`
-    + `<div class="quick">${tiles.map(t => `<button class="qt" data-go="${t[2]}" style="background:linear-gradient(90deg,${t[3]},${t[3]}bb)"><i>${t[0]}</i><span>${esc(t[1])}</span></button>`).join('')}</div>`;
+    + `<div class="quick">${tiles.map(t => `<button class="qt" data-go="${t[2]}" style="background:linear-gradient(90deg,${t[3]},${t[3]}aa 30%,#262828 70%,#232525)"><i>${t[0]}</i><span>${esc(t[1])}</span></button>`).join('')}</div>`;
   const hist = histList().slice(0, 12);
-  if (hist.length) h += `<div class="sec">Escuchado hace poco</div><div class="hs">${hist.map((x, i) => `<button class="cc" data-go="h:${i}"><div class="im" style="background-image:url('${esc(hq(x.th))}')"></div><div class="ct">${esc(x.t)}</div></button>`).join('')}</div>`;
+  if (hist.length) h += `<div class="sec">Escuchado hace poco</div><div class="hs">${hist.map((x, i) => `<button class="cc" data-go="h:${i}"><div class="im" style="background-image:${bgi(x.th)}"></div><div class="ct">${esc(x.t)}</div></button>`).join('')}</div>`;
   h += `<div class="sec">${pred ? 'Temas' : 'Categorías'}</div><div class="hs">${cats.map((c, i) => `<button class="cc" data-go="cat:${i}"><div class="im" style="background:${grad(i)}"><b>${esc(c[0])}</b><em>${c[2]}</em></div></button>`).join('')}</div>`;
   h += `<div class="sec">${pred ? 'Predicadores' : 'Adoradores'}</div><div class="hs">${people.map((a, i) => `<button class="ar" data-go="p:${i}"><div class="ci" style="background:${grad(i + 2)}">${initials(a)}</div><div class="ct">${esc(a)}</div></button>`).join('')}</div>`;
   const f = follows().slice(0, 12);
-  if (f.length) h += `<div class="sec">Tus canales</div><div class="hs">${f.map((c, i) => `<button class="ar" data-go="f:${i}"><div class="ci" style="background:#333 center/cover;background-image:url('${esc(c.th)}')"></div><div class="ct">${esc(c.t)}</div></button>`).join('')}</div>`;
+  if (f.length) h += `<div class="sec">Tus canales</div><div class="hs">${f.map((c, i) => `<button class="ar" data-go="f:${i}"><div class="ci" style="background:#333 center/cover;background-image:${bgi(c.th)}"></div><div class="ct">${esc(c.t)}</div></button>`).join('')}</div>`;
   return h + '<div style="height:20px"></div>';
 }
 function browseHtml(){
@@ -961,8 +980,8 @@ document.addEventListener('click', e => {
   if (a === 'paste') { pasteLink(); return; }
   if (a === 'newpl') { newPl(); return; }
   if (a === 'about') {
-    if (!esDueno()) { sheet('Alabanza', [], 'Premium · Creador Edgardo Ruiz · web 3.4'); return; }
-    sheet('Alabanza · propietario', [['🔑', 'Activar un teléfono', activarPage], ['📱', 'Teléfonos con Alabanza', telefonosPage],
+    if (!esDueno()) { sheet('Hosanna Music', [], 'Premium · Creador Edgardo Ruiz · web 3.4'); return; }
+    sheet('Hosanna Music · propietario', [['🔑', 'Activar un teléfono', activarPage], ['📱', 'Teléfonos con Hosanna Music', telefonosPage],
       ['🔐', 'Cambiar la clave del servidor', gate],
       ['🔄', 'Buscar otra vez el servidor', () => { SRV = ''; store.set('srv', ''); findServer(true).then(() => toast('Servidor encontrado')).catch(e => toast(e.message)); }],
       ['🚪', 'Quitar el modo propietario de este iPhone', () => { if (confirm('¿Quitar el modo propietario de este iPhone? Para volverlo a poner necesitas la clave de propietario.')) { CLAVE = ''; store.set('dueno', ''); goTab(tab); } }]],
@@ -1118,7 +1137,7 @@ async function activarPage(){
     act.tel = tel; act.cod = tel ? await activacion(tel) : null;
     $('aout').textContent = act.cod || '—';
     $('apara').textContent = tel ? 'para el teléfono ' + tel : '';
-    $('awarn').textContent = tel && bloqueados().includes(tel) ? '⚠ Este teléfono está desactivado: primero vuelve a activarlo en «Teléfonos con Alabanza»' : '';
+    $('awarn').textContent = tel && bloqueados().includes(tel) ? '⚠ Este teléfono está desactivado: primero vuelve a activarlo en «Teléfonos con Hosanna Music»' : '';
     $('abtns').style.opacity = act.cod ? 1 : .4;
     $('abtns2').style.opacity = act.cod ? 1 : .4;
     $('aok').textContent = '';
@@ -1135,7 +1154,7 @@ async function activarPage(){
     toast('Listo: ' + act.tel + ' activado');
   };
   $('acop').onclick = async () => { if (!act.cod) return; marcar(); try { await navigator.clipboard.writeText(act.cod); toast('Copiado: ' + act.cod); } catch(e) { prompt('Copia el código:', act.cod); } };
-  $('aenv').onclick = () => { if (!act.cod) return; marcar(); compartir('Tu código de activación de Alabanza es: ' + act.cod + '\nEscríbelo en «Código de activación» y toca «Activar».'); };
+  $('aenv').onclick = () => { if (!act.cod) return; marcar(); compartir('Tu código de activación de Hosanna Music es: ' + act.cod + '\nEscríbelo en «Código de activación» y toca «Activar».'); };
   // los que pidieron el código desde su teléfono (ntfy los guarda unas horas)
   try {
     const l = (await ntfyAll(ACT_T)).reverse().map(o => ({c: buscarCodigo(o.message), t: o.message.split('\n')[0], w: o.time * 1000})).filter(x => x.c);
@@ -1147,7 +1166,7 @@ async function activarPage(){
 }
 
 async function telefonosPage(){
-  ownOpen('Teléfonos con Alabanza', '<div id="tlist"></div>');
+  ownOpen('Teléfonos con Hosanna Music', '<div id="tlist"></div>');
   let estado = 'Actualizando…';
   const draw = () => {
     const o = registro(), bl = bloqueados();
@@ -1155,7 +1174,7 @@ async function telefonosPage(){
     const act = l.filter(x => !bl.includes(x.cod)).length, off = l.length - act;
     let h = `<div class="big"><div style="font-weight:700">Tienen tu app</div><b>${act}</b><div style="font-size:14px">${act === 1 ? 'activo' : 'activos'}${off ? ' · ' + off + ' desactivado' + (off === 1 ? '' : 's') : ''}</div></div>`
       + `<div class="note" style="padding-top:8px">${esc(estado)}</div>`;
-    if (!l.length) h += '<div class="note">Todavía no ha llegado ninguno. Cada teléfono aparece cuando abre Alabanza (3.2 o más nueva) con internet; cada iPhone, cuando abre esta página.</div>';
+    if (!l.length) h += '<div class="note">Todavía no ha llegado ninguno. Cada teléfono aparece cuando abre Hosanna Music (3.2 o más nueva) con internet; cada iPhone, cuando abre esta página.</div>';
     for (const x of l) {
       const yo = x.cod === DEV, isOff = bl.includes(x.cod);
       const nombre = yo ? 'Tu iPhone' : (x.apodo || x.n || x.m || 'Teléfono ' + x.cod);
@@ -1177,8 +1196,8 @@ async function telMenu(cod, draw){
   const nm = x.apodo || x.n || x.m || 'Teléfono ' + cod;
   const ops = [];
   if (off) ops.push(['✓', 'Volver a activar', () => { setBloqueado(cod, false); draw(); toast(nm + ' se vuelve a activar'); }]);
-  else ops.push(['⛔', 'Desactivar Alabanza aquí', () => {
-    if (!confirm('¿Desactivar a ' + nm + '?\n\nAlabanza dejará de funcionar ahí la próxima vez que la abra con internet. Después puedes volver a activarla aquí mismo.')) return;
+  else ops.push(['⛔', 'Desactivar Hosanna Music aquí', () => {
+    if (!confirm('¿Desactivar a ' + nm + '?\n\nHosanna Music dejará de funcionar ahí la próxima vez que la abra con internet. Después puedes volver a activarla aquí mismo.')) return;
     setBloqueado(cod, true); draw();
   }]);
   ops.push(['✏', 'Ponerle nombre', () => { const v = prompt('Nombre para este teléfono (ej. Damaris, TV de la sala):', x.apodo || x.n || ''); if (v === null) return; const r = registro(); (r[cod] = r[cod] || {w: 1}).apodo = v.trim(); setRegistro(r); draw(); }]);
