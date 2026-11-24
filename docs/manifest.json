@@ -1,9 +1,9 @@
 {
-  "name": "Alabanza",
-  "short_name": "Alabanza",
+  "name": "Hosanna Music",
+  "short_name": "Hosanna Music",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#121212",
-  "theme_color": "#121212",
+  "background_color": "#0a0b0b",
+  "theme_color": "#0a0b0b",
   "icons": [{"src": "icono.png", "sizes": "512x512", "type": "image/png"}]
 }
